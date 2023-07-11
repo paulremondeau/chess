@@ -1,12 +1,16 @@
 import scala.io.StdIn.readLine
 
-/** Contains a game of chess.
+/** A game of chess.
   *
   * A game is played between two players, white and black.
   * @todo
   *   add clocks
   * @todo
   *   keep move orders somewhere
+  * @todo
+  *   draw rules (50 moves, 3 positions)
+  * @todo
+  *   en passant
   */
 class Game:
 
@@ -15,6 +19,14 @@ class Game:
     * While its the empty string, the game has no winner.
     */
   private var _winner: String = ""
+
+  /** Access the winner of the game.
+    *
+    * If it's a stalemate, the winner is set to "_"
+    *
+    * @return
+    *   The winner.
+    */
   def winner: String = _winner
 
   /** Which player it is to play
@@ -33,9 +45,17 @@ class Game:
   /** The chess board.
     */
   private val _board: Board = Board()
+
+  /** Access the board of the game.
+    *
+    * @return
+    *   The board.
+    */
   def board: Board = _board
   _board.initialize()
 
+  /** A list of all the pieces of the given color.
+    */
   val colorPiece = (color: String) =>
     _board.board
       .map(x => x.filter(y => y.color == color))
@@ -59,6 +79,16 @@ class Game:
         else false
       else false
     else false
+
+  def convertPos(input: String): (Int, Int) =
+
+    val row: Char = input(1)
+    val column: Char = input(0)
+
+    val numericRow: Int = row.asDigit - 1
+    val numericColumn: Int = ('a' to 'z').indexOf(column)
+
+    (numericRow, numericColumn)
 
   /** Play a turn of chess.
     *
@@ -152,7 +182,7 @@ class Game:
             else validSquare = false
           }
 
-          if selectedSquare == "X" then playerHasPlay = false
+          if selectedSquare == "x" then playerHasPlay = false
           else
 
             val selectedPiece = _board.board(selectedRow)(selectedColumn)

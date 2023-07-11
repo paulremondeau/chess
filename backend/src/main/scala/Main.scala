@@ -1,5 +1,12 @@
 import scala.io.StdIn.readLine
-@main def hello: Unit =
+
+/** The main function of the chess game.
+  *
+  * Creates a chess game and it's white turn to play. The game continue until
+  * one player win or a stalemate occurs
+  */
+@main def playChess: Unit =
+
   val game: Game = Game()
 
   while (game.winner == "") {
@@ -7,20 +14,4 @@ import scala.io.StdIn.readLine
   }
 
   println(game.winner + " won!")
-  println(game.board)
-
-def msg = "I was compiled by Scala 3. :)"
-
-def convertPos(input: String): (Int, Int) =
-
-  val row: Char = input(1)
-  val column: Char = input(0)
-
-  val numericRow: Int = row.asDigit - 1
-  val numericColumn: Int = ('a' to 'z').indexOf(column)
-
-  // if (numericRaw.min(numericColumn) < 0) || (numericRaw.max(numericColumn) > 7)
-  // then Position(-1, -1)
-  // else Position(numericRaw, numericColumn)
-
-  (numericRow, numericColumn)
+  println(game.board.visualizeBoard(game.winner))

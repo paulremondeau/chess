@@ -13,6 +13,13 @@ class Board:
       .map(x => (0 to 7).map(y => Piece("_", Position(x, y))).toArray)
       .toArray
 
+  /** The board matrix.
+    *
+    * @return
+    *   The board matrix.
+    */
+  def board: Array[Array[Piece]] = _board
+
   /** Initialize the chess board.
     *
     * Put all the pieces on their starting square. White pieces on the 1st row,
@@ -40,14 +47,12 @@ class Board:
     _board(0) = fillPieceRow.apply("W", 0)
     _board(7) = fillPieceRow.apply("B", 7)
 
-  def board: Array[Array[Piece]] = _board
-
   override def toString(): String =
     visualizeBoard("W")
 
-  /** Allows for board visualisation.
+  /** Visualize the board.
     *
-    * It shows the chess board from either white or black perspective. Columns
+    * Shows the chess board from either white or black perspective. Columns
     * names are indicates at the bottom, and row numbers are on the left side of
     * each row.
     *
@@ -80,8 +85,8 @@ class Board:
 
   /** Move the piece on the board.
     *
-    * It first replace its starting square with a neutral piece. It then replace
-    * the target position with
+    * It first replaces its starting square with a neutral piece. It then
+    * replaces the target position with the piece.
     *
     * @param piece
     *   The piece to move.

@@ -9,9 +9,21 @@
 class Piece(c: String, p: Position):
 
   private var _color: String = c
+
+  /** The color of the piece.
+    *
+    * @return
+    *   The color of the piece.
+    */
   def color: String = _color
 
   private var _position: Position = p
+
+  /** The position of the piece.
+    *
+    * @return
+    *   The position of the piece.
+    */
   def position: Position = _position
 
   /** Overriding the toString method.
@@ -71,6 +83,7 @@ class Piece(c: String, p: Position):
     * This function moves a piece by moving its given position.
     *
     * @param newPos
+    *   The new position
     */
   def move(newPos: Position): Unit =
     _position.move(newPos)
@@ -78,10 +91,25 @@ class Piece(c: String, p: Position):
     then // If piece is able to castle, remove its right to do so after it has move
       this.asInstanceOf[Castleable].cannotCastle
 
+  /** Move a piece.
+    *
+    * This function moves a piece by moving its given position.
+    *
+    * @param newRow
+    *   The new position row
+    * @param newColumn
+    *   The new position column
+    */
   def move(newRow: Int, newColumn: Int): Unit =
     move(Position(newRow, newColumn))
 
-  /** Movements for rooks, bishops and queens.
+  /** Movements for long range pieces.
+    *
+    * Returns a list containing all the squares in the given direction from the
+    * piece Position until it reaches either the end of the board or a piece.
+    *
+    * If the last square is an enemy piece, keep it to the list (because it can
+    * be captured)
     */
   val longRangeMovements = (
       friendlyPieces: List[Piece],
