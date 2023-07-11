@@ -1,4 +1,10 @@
-/** Neutral empty piece, to fill the blanks in the board
+/** A piece architecture. This is not an abstract class because empty squares
+  * will be filled with piece with the "_" color.
+  *
+  * @param c
+  *   The color of the piece
+  * @param p
+  *   The position of the piece
   */
 class Piece(c: String, p: Position):
 
@@ -8,6 +14,13 @@ class Piece(c: String, p: Position):
   private var _position: Position = p
   def position: Position = _position
 
+  /** Overriding the toString method.
+    *
+    * Neutral piece will be printed as blank space.
+    *
+    * @return
+    *   The blank space
+    */
   override def toString(): String = " "
 
   def availableMovements(
@@ -15,6 +28,25 @@ class Piece(c: String, p: Position):
       enemiesPieces: List[Piece]
   ): List[Position] = List(Position(1, 1))
 
+  /** A piece cannot move if it puts its king in check.
+    *
+    * This function filters valid moves from invalid ones. It verifies if the
+    * king is not the direct target of enemies pieces once the piece has moved.
+    *
+    * The function does not modify any of the parameters, neither the piece
+    * itself.
+    *
+    * @param targetPosition
+    *   The square the piece wants to go.
+    * @param friendlyPieces
+    *   The allies pieces.
+    * @param enemiesPieces
+    *   The enemies pieces.
+    * @param friendlyKing
+    *   The ally king.
+    * @return
+    *   true if the move is valid, false otherwise.
+    */
   def isValidMovement(
       targetPosition: Position,
       friendlyPieces: List[Piece],
@@ -22,28 +54,35 @@ class Piece(c: String, p: Position):
       friendlyKing: King
   ): Boolean =
 
-    val futureEnemiesPieces: List[Piece] = enemiesPieces.filter(p =>
-      p.position != targetPosition
-    ) // If we capture, remove this piece
+    // If the piece captures another one, the enemy piece must be removed.
+    val futureEnemiesPieces: List[Piece] =
+      enemiesPieces.filter(p => p.position != targetPosition)
 
+    // The piece moves, therefore it leaves its position to the new one
     val futurefriendlyPieces: List[Piece] =
-      friendlyPieces.filter(_ != this) // Piece move, remove it
+      friendlyPieces.filter(_ != this)
         ++ List(new Piece(color, targetPosition))
 
+    // Verify if the ally king is not check with this new pieces disposition.
     !friendlyKing.isChecked(futurefriendlyPieces, futureEnemiesPieces)
 
-  def move(newRow: Int, newColumn: Int): Unit =
-    _position.move(newRow, newColumn)
-    if this.isInstanceOf[Castleable]
-    then // If piece is able to castle, remove its right to do so
-      this.asInstanceOf[Castleable].cannotCastle
-
+  /** Move a piece.
+    *
+    * This function moves a piece by moving its given position.
+    *
+    * @param newPos
+    */
   def move(newPos: Position): Unit =
     _position.move(newPos)
     if this.isInstanceOf[Castleable]
-    then // If piece is able to castle, remove its right to do so
+    then // If piece is able to castle, remove its right to do so after it has move
       this.asInstanceOf[Castleable].cannotCastle
 
+  def move(newRow: Int, newColumn: Int): Unit =
+    move(Position(newRow, newColumn))
+
+  /** Movements for rooks, bishops and queens.
+    */
   val longRangeMovements = (
       friendlyPieces: List[Piece],
       enemiesPieces: List[Piece],

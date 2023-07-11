@@ -10,11 +10,11 @@ class PieceTest extends munit.FunSuite {
 
     val friendlyPiece: Piece = Piece("W", Position(3, 3)) // d4
 
-    // assertEquals(
-    //   friendlyPiece
-    //     .isValidMovement(Position(4, 3), List(), enemiesPieces, friendlyKing),
-    //   true
-    // )
+    assertEquals(
+      friendlyPiece
+        .isValidMovement(Position(4, 3), List(), enemiesPieces, friendlyKing),
+      true
+    )
 
     assertEquals(
       friendlyPiece

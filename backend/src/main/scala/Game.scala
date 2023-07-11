@@ -141,7 +141,7 @@ class Game:
                     piece,
                     selectedPos
                   )
-// TODO : CASTLE !!!!!
+
               case king: King =>
                 if king.canCastle then
                   val castleableRooks: List[Piece] = friendlyPieces
