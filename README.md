@@ -5,7 +5,7 @@ This repo contains a self-made chess game in Scala
 
 ## 1. Backend
 
-Tested for Python 3.3.0
+Tested for Scala 3.3.0
 
 In the backend folder, run
 ```bash
