@@ -8,14 +8,21 @@
 class Position(x: Int, y: Int):
 
   private var _row: Int = x
+
+  /** Get row value.
+    *
+    * @return
+    *   Row value
+    */
   def row: Int = _row
-  def row_=(newValue: Int): Unit =
-    _row = newValue
 
   private var _column: Int = y
+
+  /** Get column value.
+    *
+    * @return
+    */
   def column: Int = _column
-  def column_=(newValue: Int): Unit =
-    _column = newValue
 
   override def toString(): String =
     val outputColumn = ('a' to 'h').apply(column)
@@ -33,6 +40,11 @@ class Position(x: Int, y: Int):
     _row = newRow
     _column = newColumn
 
+  /** Move the position to another square.
+    *
+    * @param newPos
+    *   The new position
+    */
   def move(newPos: Position): Unit =
     _row = newPos.row
     _column = newPos.column

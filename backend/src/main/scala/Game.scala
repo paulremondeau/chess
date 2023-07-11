@@ -80,6 +80,15 @@ class Game:
       else false
     else false
 
+  /** Convert a string position to its int tuple equivalent.
+    *
+    * The given string is suppose to already be of good quality.
+    *
+    * @param input
+    *   The string position to convert.
+    * @return
+    *   The square coordinate in matrix conventions.
+    */
   def convertPos(input: String): (Int, Int) =
 
     val row: Char = input(1)
