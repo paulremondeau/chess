@@ -1,24 +1,57 @@
 import scala.io.StdIn.readLine
 
+/** Contains a game of chess.
+  *
+  * A game is played between two players, white and black.
+  * @todo
+  *   add clocks
+  * @todo
+  *   keep move orders somewhere
+  */
 class Game:
 
+  /** The winner of the game
+    *
+    * While its the empty string, the game has no winner.
+    */
   private var _winner: String = ""
   def winner: String = _winner
 
-  var turn: String = "W"
-  var nextTurn: String = "B"
-  var moves: List[Any] = List() // Used to store the moves
-  val board: Board = Board()
-  board.initialize()
+  /** Which player it is to play
+    */
+  private var turn: String = "W"
 
-  var nextTurnBoard: Board = Board() // Used to filter available movements
+  /** The player of the next turn.
+    */
+  private var nextTurn: String = "B"
+
+  /** @todo
+    *   used to store the moves order.
+    */
+  private var moves: List[Any] = List() // Used to store the moves
+
+  /** The chess board.
+    */
+  private val _board: Board = Board()
+  def board: Board = _board
+  _board.initialize()
 
   val colorPiece = (color: String) =>
-    board.board
+    _board.board
       .map(x => x.filter(y => y.color == color))
       .fold(Array[Piece]())((x, y) => x ++ y)
       .toList
 
+  /** Check if the input position is of the right format.
+    *
+    * This function checks if the given position is a correct chess square, i.e
+    * of the form a1 -> h8
+    *
+    * @param input
+    *   The given input.
+    * @return
+    *   true if the input is a correct position, false otherwise.
+    */
   def validPosition(input: String): Boolean =
     if input.length() == 2 then
       if ('a' to 'h').contains(input(0)) then
@@ -27,6 +60,14 @@ class Game:
       else false
     else false
 
+  /** Play a turn of chess.
+    *
+    * The function start by verifying if the game is not over (checkmate or
+    * stalemate).
+    *
+    * If not, the player of which it's the turn pick a piece and then pick a
+    * position to move this piece.
+    */
   def play(): Unit =
 
     val friendlyPieces: List[Piece] = colorPiece(turn)
@@ -58,7 +99,7 @@ class Game:
       else _winner == "_" // Stalemate
     else // Game goes on
       println("It's " + turn + " turn to play.")
-      println(board.visualizeBoard(turn))
+      println(_board.visualizeBoard(turn))
 
       var playerHasPlay: Boolean = false
       var selectedSquare = ""
@@ -80,13 +121,13 @@ class Game:
             if (selectedRow
                 .min(selectedColumn) >= 0) && (selectedRow.max(
                 selectedColumn
-              ) <= 7) && board.board(selectedRow)(selectedColumn).color == turn
+              ) <= 7) && _board.board(selectedRow)(selectedColumn).color == turn
             then validSquare = true
             else validSquare = false
           else validSquare = false
         }
 
-        var selectedPiece: Piece = board.board(selectedRow)(selectedColumn)
+        var selectedPiece: Piece = _board.board(selectedRow)(selectedColumn)
         var movs = availableMovements.apply(selectedPiece)
         println("Select movements available : " + movs)
 
@@ -114,7 +155,7 @@ class Game:
           if selectedSquare == "X" then playerHasPlay = false
           else
 
-            val selectedPiece = board.board(selectedRow)(selectedColumn)
+            val selectedPiece = _board.board(selectedRow)(selectedColumn)
 
             selectedPiece match
               case piece: Pawn =>
@@ -128,16 +169,16 @@ class Game:
                     promotion = readLine()
                   }
                   val newPiece = piece.promote(promotion)
-                  board.movePiece(
+                  _board.movePiece(
                     piece,
                     selectedPos
                   ) // first move pawn...
-                  board.movePiece(
+                  _board.movePiece(
                     newPiece,
                     selectedPos
                   ) // ... then replace it by its promotion
                 else // move normally
-                  board.movePiece(
+                  _board.movePiece(
                     piece,
                     selectedPos
                   )
@@ -161,7 +202,7 @@ class Game:
                       if selectedPos.column > king.position.column then 1
                       else -1
 
-                    board.movePiece(
+                    _board.movePiece(
                       castleRook,
                       Position(
                         king.position.row,
@@ -169,7 +210,7 @@ class Game:
                       )
                     )
 
-                    board.movePiece(
+                    _board.movePiece(
                       king,
                       Position(
                         king.position.row,
@@ -177,17 +218,17 @@ class Game:
                       )
                     )
                   else
-                    board.movePiece(
+                    _board.movePiece(
                       king,
                       selectedPos
                     )
                 else
-                  board.movePiece(
+                  _board.movePiece(
                     king,
                     selectedPos
                   )
               case _ => // move normally
-                board.movePiece(
+                _board.movePiece(
                   selectedPiece,
                   selectedPos
                 )

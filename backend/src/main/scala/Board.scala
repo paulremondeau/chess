@@ -1,16 +1,30 @@
+/** The board game.
+  *
+  * The board contains a 8x8 matrix with every square containing a piece, either
+  * black, white or neutral.
+  */
 class Board:
 
-  private var finished: Boolean = false
-
+  /** The 8x8 matrix containing the piece. When creatad, all squares contain
+    * neutral pieces.
+    */
   private val _board: Array[Array[Piece]] =
     (0 to 7)
       .map(x => (0 to 7).map(y => Piece("_", Position(x, y))).toArray)
       .toArray
 
+  /** Initialize the chess board.
+    *
+    * Put all the pieces on their starting square. White pieces on the 1st row,
+    * white pawns on the 2nd row, black pieces on the 8th row and black pawns on
+    * the 7th row.
+    */
   def initialize(): Unit =
     _board(6) = (0 to 7).map(y => Pawn("B", Position(6, y))).toArray
     _board(1) = (0 to 7).map(y => Pawn("W", Position(1, y))).toArray
 
+    // Put all the pieces of a given color on the given row
+    // in the right order.
     val fillPieceRow = (color: String, row: Int) =>
       Array[Piece](
         Rook(color, Position(row, 0)),
@@ -31,6 +45,19 @@ class Board:
   override def toString(): String =
     visualizeBoard("W")
 
+  /** Allows for board visualisation.
+    *
+    * It shows the chess board from either white or black perspective. Columns
+    * names are indicates at the bottom, and row numbers are on the left side of
+    * each row.
+    *
+    * Every piece is represented as their toString() method.
+    *
+    * @param side
+    *   The perspective of the board, either black or white.
+    * @return
+    *   The chess board with all the pieces.
+    */
   def visualizeBoard(side: String): String =
 
     val lineSep: String = "  ---------------------------------\n"
@@ -51,25 +78,16 @@ class Board:
 
     "\n" + output + lineSep + bottom
 
-  def getAvailableMovements(piece: Piece): List[Position] =
-    val pieceColor: String = piece.color
-    val enemiesColor = if pieceColor == "W" then "B" else "W"
-    val friendlyPieces: List[Piece] =
-      board
-        .map(x => x.filter(y => y.color == pieceColor))
-        .fold(Array[Piece]())((x, y) => x ++ y)
-        .toList
-    val enemiesPieces: List[Piece] =
-      board
-        .map(x => x.filter(y => y.color == enemiesColor))
-        .fold(Array[Piece]())((x, y) => x ++ y)
-        .toList
-
-    val availableMovements: List[Position] =
-      piece.availableMovements(friendlyPieces, enemiesPieces)
-
-    availableMovements
-
+  /** Move the piece on the board.
+    *
+    * It first replace its starting square with a neutral piece. It then replace
+    * the target position with
+    *
+    * @param piece
+    *   The piece to move.
+    * @param newPos
+    *   The position the piece moves.
+    */
   def movePiece(piece: Piece, newPos: Position): Unit =
 
     _board(piece.position.row)(piece.position.column) =
@@ -77,8 +95,5 @@ class Board:
 
     piece.move(newPos)
     _board(newPos.row)(newPos.column) = piece
-
-  def play(player: String): Unit =
-    None
 
 end Board

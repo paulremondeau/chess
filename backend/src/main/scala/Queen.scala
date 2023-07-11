@@ -1,9 +1,28 @@
+/** Queen piece.
+  *
+  * A queen is a piece than can move on any squares of its diagonals, its row
+  * and its columns.
+  *
+  * @param c
+  *   The color of the piece.
+  * @param p
+  *   The position of the piece.
+  */
 class Queen(c: String, p: Position) extends Piece(c, p):
 
   override def toString(): String =
     if color == "B" then "♕"
     else "♛"
 
+  /** Gives the available movements of the queen.
+    *
+    * @param friendlyPieces
+    *   Allies pieces.
+    * @param enemiesPieces
+    *   Enemies pieces.
+    * @return
+    *   The available movements.
+    */
   override def availableMovements(
       friendlyPieces: List[Piece],
       enemiesPieces: List[Piece]

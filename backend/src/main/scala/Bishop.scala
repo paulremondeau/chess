@@ -13,7 +13,7 @@ class Bishop(c: String, p: Position) extends Piece(c, p):
     if color == "B" then "♗"
     else "♝"
 
-  /** Available movements of the piece.
+  /** Available movements of the bishop.
     *
     * The bishop can go to all the squares of its diagonals, until it reaches
     * another piece. If this piece is of another color, it can capture it.

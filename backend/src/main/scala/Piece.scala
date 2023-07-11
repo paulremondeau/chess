@@ -26,7 +26,7 @@ class Piece(c: String, p: Position):
   def availableMovements(
       friendlyPieces: List[Piece],
       enemiesPieces: List[Piece]
-  ): List[Position] = List(Position(1, 1))
+  ): List[Position] = List()
 
   /** A piece cannot move if it puts its king in check.
     *

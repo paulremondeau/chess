@@ -1,7 +1,9 @@
-/** @param x
-  *   The row value
+/** A position in the chess board.
+  *
+  * @param x
+  *   The row value. Must be 0 <= x <= 7.
   * @param y
-  *   The column value
+  *   The column value. Must be 0 <= y <= 7
   */
 class Position(x: Int, y: Int):
 
@@ -20,6 +22,13 @@ class Position(x: Int, y: Int):
     val outPutRow = row + 1
     s"$outputColumn$outPutRow"
 
+  /** Move the position to another square.
+    *
+    * @param newRow
+    *   The new row.
+    * @param newColumn
+    *   The new column.
+    */
   def move(newRow: Int, newColumn: Int): Unit =
     _row = newRow
     _column = newColumn
@@ -28,6 +37,14 @@ class Position(x: Int, y: Int):
     _row = newPos.row
     _column = newPos.column
 
+  /** Two positions are equals if both rows are the same and both columns are
+    * the same.
+    *
+    * @param x
+    *   The object to compare.
+    * @return
+    *   The result of the equality.
+    */
   override def equals(x: Any): Boolean =
     x match {
       case x: Position => {

@@ -1,9 +1,29 @@
+/** Knight piece.
+  *
+  * A knight is a piece with L movements that can jump through pieces.
+  *
+  * @param c
+  *   The color of the piece.
+  * @param p
+  *   The position of the piece.
+  */
 class Knight(c: String, p: Position) extends Piece(c, p):
 
   override def toString(): String =
     if color == "B" then "♘"
     else "♞"
 
+  /** Available movements of the knight.
+    *
+    * The knight can move in any L movement of height 1 and width 2.
+    *
+    * @param friendlyPieces
+    *   Allies pieces.
+    * @param enemiesPieces
+    *   Enemies pieces.
+    * @return
+    *   The list of available movements.
+    */
   override def availableMovements(
       friendlyPieces: List[Piece],
       enemiesPieces: List[Piece]
