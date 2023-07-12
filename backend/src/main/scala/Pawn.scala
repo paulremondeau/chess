@@ -15,7 +15,16 @@ class Pawn(c: String, p: Position) extends Piece(c, p):
 
   /** Indicates if the pawn can be taken en passant.
     */
-  private var enPassant: Boolean = false
+  private var _enPassant: Boolean = false
+
+  /** Indicates if en passant is possible for this pawn.
+    *
+    * @return
+    *   true if it is possible, false otherwise.
+    */
+  def enPassant: Boolean = _enPassant
+  def enPassant_(target: Boolean) =
+    _enPassant = target
 
   override def toString(): String =
     if color == "B" then "♙"
@@ -43,38 +52,47 @@ class Pawn(c: String, p: Position) extends Piece(c, p):
       friendlyPieces: List[Piece],
       enemiesPieces: List[Piece]
   ): List[Position] =
-    val movement: Int =
+    val direction: Int =
       if (color == "W") then 1 else -1
 
     val (row: Int, column: Int) = (position.row, position.column)
     val moveColumn: List[Position] =
       if (friendlyPieces ++ enemiesPieces)
           .filter(piece =>
-            piece.position.column == column && piece.position.row == row + movement
+            piece.position.column == column && piece.position.row == row + direction
           )
           .toList == List()
-      then List(Position(row + movement, column))
+      then List(Position(row + direction, column))
       else List()
 
     val firstMove: List[Position] =
       if ((color == "W" && row == 1) || (color == "B" && row == 6))
         && (friendlyPieces ++ enemiesPieces)
           .filter(piece =>
-            piece.position.column == column && (piece.position.row == row + movement
-              || piece.position.row == row + 2 * movement)
+            piece.position.column == column && (piece.position.row == row + direction
+              || piece.position.row == row + 2 * direction)
           )
           .toList == List()
-      then List(Position(row + 2 * movement, column))
+      then List(Position(row + 2 * direction, column))
       else List()
 
     val capturePiece: List[Position] =
       enemiesPieces
         .filter(piece =>
-          piece.position.row == row + movement && (piece.position.column == column + 1 || piece.position.column == column - 1)
+          piece.position.row == row + direction && (piece.position.column == column + 1 || piece.position.column == column - 1)
         )
-        .map(x => x.position)
+        .map(_.position)
 
-    (moveColumn ++ capturePiece ++ firstMove).filter(pos =>
+    val enPassant: List[Position] =
+      enemiesPieces
+        .filter(_.isInstanceOf[Pawn])
+        .filter(_.asInstanceOf[Pawn].enPassant)
+        .map(_.position)
+        .filter(p =>
+          (p.column == column + 1 || p.column == column - 1) && p.row == row
+        )
+
+    (moveColumn ++ capturePiece ++ firstMove ++ enPassant).filter(pos =>
       (pos.row <= 7) && (pos.row >= 0)
     )
 

@@ -155,4 +155,105 @@ class KingTest extends munit.FunSuite {
 
   }
 
+  test("G4 was checkmate for white although it wasn't...") {
+
+    val board: Board = Board()
+    board.initialize()
+
+    // White pieces
+    board.board(1)(4) = Piece("_", Position(1, 4))
+
+    board.movePiece(board.board(1)(7), Position(3, 7))
+
+    board.board(3)(7) = Pawn("W", Position(3, 7))
+    board.board(5)(2) = Queen("W", Position(5, 2))
+
+    // Black pieces
+    board.board(7)(2) = Piece("_", Position(7, 2))
+    board.board(7)(4) = Piece("_", Position(7, 4))
+    board.board(6)(2) = Piece("_", Position(6, 2))
+    board.board(6)(3) = Piece("_", Position(6, 3))
+    board.board(6)(4) = Piece("_", Position(6, 4))
+
+    board.board(4)(2) = Pawn("B", Position(4, 2))
+    board.board(4)(4) = Pawn("B", Position(4, 4))
+
+    val king: King = King("B", Position(4, 5))
+    board.board(4)(5) = king
+
+    board.movePiece(board.board(1)(6), Position(3, 6))
+    assertEquals(
+      board.toString(),
+      """
+  ---------------------------------
+8 | ♖ | ♘ |   | ♕ |   | ♗ | ♘ | ♖ |
+  ---------------------------------
+7 | ♙ | ♙ |   |   |   | ♙ | ♙ | ♙ |
+  ---------------------------------
+6 |   |   | ♛ |   |   |   |   |   |
+  ---------------------------------
+5 |   |   | ♙ |   | ♙ | ♔ |   |   |
+  ---------------------------------
+4 |   |   |   |   |   |   | ♟︎ | ♟︎ |
+  ---------------------------------
+3 |   |   |   |   |   |   |   |   |
+  ---------------------------------
+2 | ♟︎ | ♟︎ | ♟︎ | ♟︎ |   | ♟︎ |   |   |
+  ---------------------------------
+1 | ♜ | ♞ | ♝ | ♛ | ♚ | ♝ | ♞ | ♜ |
+  ---------------------------------
+    a   b   c   d   e   f   g   h"""
+    )
+
+    val friendlyPieces: List[Piece] = board.board
+      .map(x => x.filter(y => y.color == "B"))
+      .fold(Array[Piece]())((x, y) => x ++ y)
+      .toList
+
+    val enemiesPieces: List[Piece] = board.board
+      .map(x => x.filter(y => y.color == "W"))
+      .fold(Array[Piece]())((x, y) => x ++ y)
+      .toList
+
+    assertEquals(
+      king
+        .availableMovements(friendlyPieces, enemiesPieces)
+        .filter(p =>
+          king.isValidMovement(p, friendlyPieces, enemiesPieces, king)
+        ),
+      List(Position(3, 5))
+    )
+
+    val availableMovements = friendlyPieces
+      .map(x =>
+        x -> x
+          .availableMovements(friendlyPieces, enemiesPieces)
+          .filter(y =>
+            x.isValidMovement(
+              y,
+              friendlyPieces,
+              enemiesPieces,
+              king
+            )
+          )
+      )
+      .toMap
+
+    assertEquals(availableMovements.map((x, y) => y.length).sum, 1)
+
+    board.board(3)(6).asInstanceOf[Pawn].enPassant_(true)
+
+    assertEquals(
+      king
+        .availableMovements(friendlyPieces, enemiesPieces)
+        .filter(p =>
+          king.isValidMovement(p, friendlyPieces, enemiesPieces, king)
+        ),
+      List(Position(3, 5))
+    )
+
+    assertEquals(availableMovements.map((x, y) => y.length).sum, 1)
+
+  }
+
 }

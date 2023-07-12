@@ -9,8 +9,6 @@ import scala.io.StdIn.readLine
   *   keep move orders somewhere
   * @todo
   *   draw rules (50 moves, 3 positions)
-  * @todo
-  *   en passant
   */
 class Game:
 
@@ -111,11 +109,11 @@ class Game:
 
     val friendlyPieces: List[Piece] = colorPiece(turn)
     val friendlyKing: King =
-      friendlyPieces.filter(p => p.isInstanceOf[King])(0).asInstanceOf[King]
+      friendlyPieces.filter(p => p.isInstanceOf[King]).head.asInstanceOf[King]
 
     val enemiesPieces: List[Piece] = colorPiece(nextTurn)
     val enemyKing: King =
-      enemiesPieces.filter(p => p.isInstanceOf[King])(0).asInstanceOf[King]
+      enemiesPieces.filter(p => p.isInstanceOf[King]).head.asInstanceOf[King]
 
     val availableMovements: Map[Piece, List[Position]] =
       friendlyPieces
@@ -123,11 +121,16 @@ class Game:
           x -> x
             .availableMovements(friendlyPieces, enemiesPieces)
             .filter(y =>
-              x.isValidMovement(y, friendlyPieces, enemiesPieces, friendlyKing)
+              x.isValidMovement(
+                y,
+                friendlyPieces,
+                enemiesPieces,
+                friendlyKing
+              )
             )
         )
         .toMap
-
+    println(availableMovements)
     if availableMovements.map((x, y) => y.length).sum == 0
     then // No valid moves available
       if friendlyKing.isChecked(
@@ -167,10 +170,10 @@ class Game:
         }
 
         var selectedPiece: Piece = _board.board(selectedRow)(selectedColumn)
-        var movs = availableMovements.apply(selectedPiece)
-        println("Select movements available : " + movs)
+        var movements = availableMovements.apply(selectedPiece)
+        println("Select movements available : " + movements)
 
-        if movs.length > 0 then
+        if movements.length > 0 then
 
           var (selectedRowMove: Int, selectedColumnMove: Int) = (0, 0)
           val selectedPos: Position = Position(0, 0)
@@ -186,7 +189,7 @@ class Game:
               selectedRowMove = convertPos(selectedSquare)(0)
               selectedColumnMove = convertPos(selectedSquare)(1)
               selectedPos.move(selectedRowMove, selectedColumnMove)
-              if movs.contains(selectedPos) then validSquare = true
+              if movements.contains(selectedPos) then validSquare = true
               else validSquare = false
             else validSquare = false
           }
@@ -197,8 +200,8 @@ class Game:
             val selectedPiece = _board.board(selectedRow)(selectedColumn)
 
             selectedPiece match
-              case piece: Pawn =>
-                if (piece.color == "B" && selectedRowMove == 0) || (piece.color == "W" && selectedRowMove == 7) // pawn can promote
+              case pawn: Pawn =>
+                if (pawn.color == "B" && selectedRowMove == 0) || (pawn.color == "W" && selectedRowMove == 7) // pawn can promote
                 then
                   println("Choose how to promote your pawn (Q, R, B, N): ")
                   var promotion = readLine()
@@ -207,18 +210,32 @@ class Game:
                   ) {
                     promotion = readLine()
                   }
-                  val newPiece = piece.promote(promotion)
+                  val newPiece = pawn.promote(promotion)
                   _board.movePiece(
-                    piece,
+                    pawn,
                     selectedPos
                   ) // first move pawn...
                   _board.movePiece(
                     newPiece,
                     selectedPos
                   ) // ... then replace it by its promotion
-                else // move normally
+                else if (pawn.position.row == selectedPos.row)
+                then // en passant
+                  val direction = if pawn.color == "W" then 1 else -1
                   _board.movePiece(
-                    piece,
+                    pawn,
+                    Position(selectedPos.row + direction, selectedPos.column)
+                  ) // move pawn en passant
+
+                  _board.board(selectedPos.row)(selectedPos.column) =
+                    Piece("_", selectedPos) // remove captured pawn
+                else // move normally
+
+                  if (selectedPos.row - pawn.position.row).abs > 1 then
+                    pawn.enPassant_(true)
+
+                  _board.movePiece(
+                    pawn,
                     selectedPos
                   )
 
@@ -276,6 +293,11 @@ class Game:
             nextTurn = turn
             turn = temp
             playerHasPlay = true
+            enemiesPieces
+              .filter(_.isInstanceOf[Pawn])
+              .map(
+                _.asInstanceOf[Pawn].enPassant_(false)
+              ) // Disable en passant for all enemies pawns
         else
           println("No available movements.")
           playerHasPlay = false

@@ -211,7 +211,19 @@ class King(c: String, p: Position) extends Piece(c, p) with Castleable:
 
     // Check for Pawn
     val pawnMovements: Set[Position] = Pawn(color, position)
-      .availableMovements(friendlyPieces, enemiesPieces)
+      .availableMovements(
+        friendlyPieces,
+        enemiesPieces.map(p =>
+          if p.isInstanceOf[Pawn] then
+            if p.asInstanceOf[Pawn].enPassant then
+              Pawn(
+                p.color,
+                p.position
+              ) // If pawn can be captured en passant, king is not concerned so replace this pawn by a not en passant takenable pawn for the check
+            else p
+          else p
+        )
+      )
       .toSet
 
     if pawnMovements
