@@ -1,0 +1,58 @@
+$squareSize: 55px;
+
+table.board {
+
+    tr.row {
+
+        display: flex;
+
+        td {
+            display: flex;
+            justify-content: center;
+            text-align: left;
+            align-items: center;
+            width: $squareSize;
+            height: $squareSize;
+
+            &.dark {
+                background-color: rgb(172, 120, 18);
+
+                .move {
+                    height: 30%;
+                    width: 30%;
+                    background-color: green;
+                    border-radius: 50%;
+                }
+            }
+
+            &.light {
+                background-color: blanchedalmond;
+
+                .move {
+                    height: 30%;
+                    width: 30%;
+                    background-color: green;
+                    border-radius: 50%;
+                }
+            }
+
+            &.columnNumber {
+                display: block;
+            }
+
+
+
+
+
+
+        }
+
+
+        p.rowNumber {
+            margin-right: 20px;
+            margin-bottom: 0;
+        }
+
+
+    }
+}
