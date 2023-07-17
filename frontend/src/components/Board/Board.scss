@@ -58,12 +58,21 @@ table.board {
 
             &.dark {
 
-                @include square(rgb(172, 120, 18))
+                @include square(rgb(172, 120, 18));
+
+                &.selected {
+                    background-color: rgb(110, 80, 18);
+                }
+
             }
 
             &.light {
 
-                @include square(blanchedalmond)
+                @include square(blanchedalmond);
+
+                &.selected {
+                    background-color: rgb(190, 177, 158);
+                }
             }
 
             &.columnNumber {

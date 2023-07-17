@@ -1,11 +1,11 @@
 import './Board.scss'
-import { useState, useRef, useEffect } from 'react'
+import { useState, useEffect } from 'react'
 
 import Piece from '../Piece/Piece'
 import { convertSquare } from '../../utils/convertSquare'
 
+// @ts-ignore
 import useSound from 'use-sound';
-import { useDrop } from 'react-dnd';
 
 import moveSfx from '../../assets/move-self.mp3';
 import captureSfx from '../../assets/capture.mp3';
@@ -13,6 +13,10 @@ import captureSfx from '../../assets/capture.mp3';
 interface Square {
     [key: string]: { 'name': string, 'color': string, 'movements': string[] };
 }
+
+import SwitchButton from '../../assets/switch.png'
+
+
 function Board() {
 
     const [playMove] = useSound(moveSfx);
@@ -61,10 +65,10 @@ function Board() {
     const [columnOrder, selectcolumnOrder] = useState<number[]>([1, 2, 3, 4, 5, 6, 7, 8])
 
     useEffect(() => {
-        selectRowOrder(rowOrder.reverse());
-        selectcolumnOrder(columnOrder.reverse())
 
-        selectRowOrder([...rowOrder])
+        selectRowOrder([...rowOrder.reverse()])
+        selectcolumnOrder([...columnOrder.reverse()])
+
     }, [view])
 
     const [selectedPiece, selectSelectedPiece] = useState<string>('')
@@ -116,19 +120,30 @@ function Board() {
         cleanMovements()
 
         Object.keys(board).indexOf(selectedSquare) > -1 ?
-            board[selectedSquare].movements.map((id) => {
 
-                let child = document.getElementById(id)?.children[0]
-                child?.classList.add('move')
+            handleMovements(selectedSquare) : null
 
-            }) : null
+    }
 
+    function handleMovements(selectedSquare: string) {
+
+        document.getElementById(selectedSquare)?.classList.add("selected")
+        board[selectedSquare].movements.map((id) => {
+
+            let child = document.getElementById(id)?.children[0]
+            child?.classList.add('move')
+
+        })
     }
 
     function cleanMovements() {
 
         for (const element of document.querySelectorAll(".move")) {
             element.classList.remove("move")
+        };
+
+        for (const element of document.querySelectorAll(".selected")) {
+            element.classList.remove("selected")
         };
     }
 
@@ -168,26 +183,23 @@ function Board() {
                                                 className={(rowNumber + columnNumber) % 2 == 0 ? 'dark' : 'light'}
                                                 onDrop={(e) => {
 
-                                                    if (e.currentTarget.className == 'dark' || e.currentTarget.className == 'light') {
-                                                        // Droping on piece
+                                                    if (e.currentTarget.classList.contains('dark') || e.currentTarget.classList.contains('light')) {
+
                                                         const child = e.currentTarget.children[0]
                                                         if (child.classList.contains('move')) {
                                                             movePiece(e.currentTarget.id)
                                                         }
 
                                                     } else {
-
-                                                        if (e.target.classList.contains('move')) {
+                                                        const target = e.target as Element
+                                                        if (target.classList.contains('move')) {
                                                             movePiece(e.currentTarget.id)
                                                         }
                                                     }
                                                 }}
                                                 onDragOver={event => event.preventDefault()}
-                                                // {/* onclick={handleClick}> */}
-                                                // onClick={() => { selectSelectedPiece(selectedSquare) }}
-                                                // onClick={handleClick}
                                                 onClick={(e) => handleClick(e)}
-                                            // onClick={(e) => console.log(e)}
+
                                             >
 
                                                 {Object.keys(board).indexOf(selectedSquare) > -1
@@ -195,7 +207,7 @@ function Board() {
                                                         draggable="true"
                                                         onDragStart={() => selectSelectedPiece(selectedSquare)}
 
-                                                        onDragEnd={(e) => {
+                                                        onDragEnd={() => {
 
                                                             selectSelectedPiece('')
                                                         }}>
@@ -223,7 +235,7 @@ function Board() {
                     </tr>
                 </tbody>
             </table >
-            <img onClick={() => selectView(!view)} src='src/assets/switch.png' className='switchButton' width='30px' />
+            <img onClick={() => selectView(!view)} src={SwitchButton} className='switchButton' width='30px' />
         </>
     )
 }
