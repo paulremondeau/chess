@@ -78,6 +78,10 @@ function Board() {
 
     }, [selectedPiece])
 
+    /** Click event handler.
+     *
+     * @param e 
+     */
     const handleClick = (e: React.MouseEvent) => {
 
         console.log(e.type)
@@ -108,13 +112,16 @@ function Board() {
             }
         }
 
-        if (eventType == 'drag') {
-
-            console.log('drag')
-
-        }
     }
 
+    /** 
+     * Show the available movements of the selected piece.
+     * 
+     * If selected square is a key of the board Object, add the class 'move' to every
+     * piece/empty classes.
+     * 
+     * @param selectedSquare The selected square.
+     */
     function showMovements(selectedSquare: string) {
 
         cleanMovements()
@@ -125,6 +132,11 @@ function Board() {
 
     }
 
+    /** 
+     * Add markers on available movements and highlight selected square.
+     * 
+     * @param selectedSquare The selected square.
+     */
     function handleMovements(selectedSquare: string) {
 
         document.getElementById(selectedSquare)?.classList.add("selected")
@@ -136,6 +148,9 @@ function Board() {
         })
     }
 
+    /**
+     * Remove every 'move' class from every div containing it.
+     */
     function cleanMovements() {
 
         for (const element of document.querySelectorAll(".move")) {
@@ -147,6 +162,15 @@ function Board() {
         };
     }
 
+    /**
+     * Move a piece on the board.
+     * 
+     * Replace the targetSquare key entry of board with the selectedSquare key entry.
+     * 
+     * Remove the selectedSquare key entry afterwards to clean the square.
+     * 
+     * @param targetSquare The targetted square.
+     */
     function movePiece(targetSquare: string) {
 
         Object.keys(board).indexOf(targetSquare) > -1 ? playCapture() : playMove()
