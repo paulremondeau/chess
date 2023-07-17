@@ -1,5 +1,42 @@
 $squareSize: 55px;
 
+@mixin square($background-color) {
+
+    display: flex;
+    background-color: $background-color;
+
+    .empty {
+        height: 100%;
+        width: 100%;
+        display: flex;
+
+        &.move {
+            display: flex;
+            background-image: url('/src/assets/dot_move.svg');
+            background-repeat: no-repeat;
+            background-position: center;
+        }
+
+    }
+
+    .piece {
+        height: 100%;
+        width: 100%;
+        display: flex;
+
+
+        &.move {
+            border: 2px solid green;
+            display: flex;
+            height: $squareSize;
+            width: $squareSize;
+            pointer-events: none;
+
+        }
+    }
+}
+
+
 table.board {
 
     tr.row {
@@ -8,51 +45,33 @@ table.board {
 
         td {
             display: flex;
+            border-radius: 0%;
             justify-content: center;
             text-align: left;
             align-items: center;
             width: $squareSize;
             height: $squareSize;
 
-            &.dark {
-                background-color: rgb(172, 120, 18);
 
-                .move {
-                    height: 30%;
-                    width: 30%;
-                    background-color: green;
-                    border-radius: 50%;
-                }
+
+            &.dark {
+
+                @include square(rgb(172, 120, 18))
             }
 
             &.light {
-                background-color: blanchedalmond;
 
-                .move {
-                    height: 30%;
-                    width: 30%;
-                    background-color: green;
-                    border-radius: 50%;
-                }
+                @include square(blanchedalmond)
             }
 
             &.columnNumber {
                 display: block;
             }
-
-
-
-
-
-
         }
-
 
         p.rowNumber {
             margin-right: 20px;
             margin-bottom: 0;
         }
-
-
     }
 }
