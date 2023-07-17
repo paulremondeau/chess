@@ -13,6 +13,7 @@ $squareSize: 55px;
         &.move {
             display: flex;
             background-image: url('/src/assets/dot_move.svg');
+            background-size: 15px 15px;
             background-repeat: no-repeat;
             background-position: center;
         }
@@ -26,8 +27,9 @@ $squareSize: 55px;
 
 
         &.move {
-            border: 2px solid green;
             display: flex;
+            background-image: url('/src/assets/movePiece.png');
+            background-size: $squareSize $squareSize;
             height: $squareSize;
             width: $squareSize;
             pointer-events: none;
@@ -66,6 +68,7 @@ table.board {
 
             &.columnNumber {
                 display: block;
+                height: 20px;
             }
         }
 
@@ -73,5 +76,10 @@ table.board {
             margin-right: 20px;
             margin-bottom: 0;
         }
+    }
+
+    img.switchButton {
+        margin: 0;
+        padding: 0;
     }
 }

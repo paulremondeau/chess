@@ -223,8 +223,7 @@ function Board() {
                     </tr>
                 </tbody>
             </table >
-            <button onClick={() => selectView(!view)}>Switch</button>
-
+            <img onClick={() => selectView(!view)} src='src/assets/switch.png' className='switchButton' width='30px' />
         </>
     )
 }
