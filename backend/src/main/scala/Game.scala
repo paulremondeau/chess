@@ -169,8 +169,8 @@ class Game:
           else validSquare = false
         }
 
-        var selectedPiece: Piece = _board.board(selectedRow)(selectedColumn)
-        var movements = availableMovements.apply(selectedPiece)
+        val selectedPiece: Piece = _board.board(selectedRow)(selectedColumn)
+        val movements = availableMovements.apply(selectedPiece)
         println("Select movements available : " + movements)
 
         if movements.length > 0 then
@@ -196,8 +196,6 @@ class Game:
 
           if selectedSquare == "x" then playerHasPlay = false
           else
-
-            val selectedPiece = _board.board(selectedRow)(selectedColumn)
 
             selectedPiece match
               case pawn: Pawn =>
