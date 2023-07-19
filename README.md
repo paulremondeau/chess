@@ -12,3 +12,13 @@ In the backend folder, run
 $ sbt run
 ```
 
+## 2. Frontend
+
+In the frontend folder, run
+
+```bash
+$ npm run build
+```
+```bash
+$ npm run preview
+```
