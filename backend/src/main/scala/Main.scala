@@ -21,6 +21,9 @@ implicit val loggerFactory: LoggerFactory[IO] = Slf4jFactory.create[IO]
 import com.comcast.ip4s.ipv4
 import com.comcast.ip4s.port
 
+import org.http4s.server.middleware.CORS
+import org.http4s.headers.Origin
+
 /** The main function of the chess game.
   *
   * Creates a chess game and it's white turn to play. The game continue until
@@ -74,18 +77,30 @@ object Main extends IOApp {
       case req @ GET -> Root / "initialize" =>
         game.board.initialize()
         println(game.board)
-        Ok()
+        Ok(DataOutputFormat(game.winner, game.turn, game.convertForFrontend()))
+
+      case req @ GET -> Root / "board" =>
+        Ok(DataOutputFormat(game.winner, game.turn, game.convertForFrontend()))
 
     }
     .orNotFound
 
-  def run(args: List[String]): IO[ExitCode] =
-    EmberServerBuilder
-      .default[IO]
-      .withHost(ipv4"0.0.0.0")
-      .withPort(port"8080")
-      .withHttpApp(helloWorldService)
-      .build
-      .use(_ => IO.never)
-      .as(ExitCode.Success)
+  val corsService = CORS.policy
+    .withAllowOriginHost(
+      Set(
+        Origin.Host(Uri.Scheme.http, Uri.RegName("localhost"), Some(5173))
+      )
+    )
+    .apply(helloWorldService)
+
+  val server = EmberServerBuilder
+    .default[IO]
+    .withHost(ipv4"0.0.0.0")
+    .withPort(port"8080")
+    .withHttpApp(corsService)
+    .build
+
+  def run(args: List[String]): IO[ExitCode] = server
+    .use(_ => IO.never)
+    .as(ExitCode.Success)
 }

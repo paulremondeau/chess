@@ -109,7 +109,7 @@ class GameAPI:
       .map(x =>
         x.position.toString() ->
           PieceInformation(
-            pieceType = x.getClass().toString(),
+            pieceType = x.getClass.getName,
             pieceColor = x.color.toLowerCase(),
             availableMovements = x
               .availableMovements(friendlyPieces, enemiesPieces)
@@ -127,7 +127,7 @@ class GameAPI:
       .map(x =>
         x.position.toString() ->
           PieceInformation(
-            pieceType = x.getClass().toString(),
+            pieceType = x.getClass.getName,
             pieceColor = x.color.toLowerCase(),
             availableMovements = x
               .availableMovements(enemiesPieces, friendlyPieces)

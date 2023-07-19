@@ -11,10 +11,14 @@ import moveSfx from '../../assets/move-self.mp3';
 import captureSfx from '../../assets/capture.mp3';
 
 interface Square {
-    [key: string]: { 'name': string, 'color': string, 'movements': string[] };
+    [key: string]: { 'pieceType': string, 'pieceColor': string, 'availableMovements': string[] };
 }
 
 import SwitchButton from '../../assets/switch.png'
+
+import axios from 'axios'
+
+const backendUrl: String = 'http://127.0.0.1:8080/'
 
 
 function Board() {
@@ -22,43 +26,44 @@ function Board() {
     const [playMove] = useSound(moveSfx);
     const [playCapture] = useSound(captureSfx);
 
-    const [board, setBoard] = useState<Square>({
-        'a1': { 'name': 'Rook', 'color': 'w', 'movements': [] },
-        'b1': { 'name': 'Knight', 'color': 'w', 'movements': [] },
-        'c1': { 'name': 'Bishop', 'color': 'w', 'movements': [] },
-        'd1': { 'name': 'Queen', 'color': 'w', 'movements': [] },
-        'e1': { 'name': 'King', 'color': 'w', 'movements': [] },
-        'f1': { 'name': 'Bishop', 'color': 'w', 'movements': [] },
-        'g1': { 'name': 'Knight', 'color': 'w', 'movements': [] },
-        'h1': { 'name': 'Rook', 'color': 'w', 'movements': [] },
+    // const [board, setBoard] = useState<Square>({
+    //     'a1': { 'pieceType': 'Rook', 'pieceColor': 'w', 'availableMovements': [] },
+    //     'b1': { 'pieceType': 'Knight', 'pieceColor': 'w', 'availableMovements': [] },
+    //     'c1': { 'pieceType': 'Bishop', 'pieceColor': 'w', 'availableMovements': [] },
+    //     'd1': { 'pieceType': 'Queen', 'pieceColor': 'w', 'availableMovements': [] },
+    //     'e1': { 'pieceType': 'King', 'pieceColor': 'w', 'availableMovements': [] },
+    //     'f1': { 'pieceType': 'Bishop', 'pieceColor': 'w', 'availableMovements': [] },
+    //     'g1': { 'pieceType': 'Knight', 'pieceColor': 'w', 'availableMovements': [] },
+    //     'h1': { 'pieceType': 'Rook', 'pieceColor': 'w', 'availableMovements': [] },
 
-        'a2': { 'name': 'Pawn', 'color': 'w', 'movements': [] },
-        'b2': { 'name': 'Pawn', 'color': 'w', 'movements': [] },
-        'c2': { 'name': 'Pawn', 'color': 'w', 'movements': [] },
-        'd2': { 'name': 'Pawn', 'color': 'w', 'movements': [] },
-        'e2': { 'name': 'Pawn', 'color': 'w', 'movements': ['e3', 'e4', 'e7'] },
-        'f2': { 'name': 'Pawn', 'color': 'w', 'movements': [] },
-        'h2': { 'name': 'Pawn', 'color': 'w', 'movements': [] },
-        'g2': { 'name': 'Pawn', 'color': 'w', 'movements': [] },
+    //     'a2': { 'pieceType': 'Pawn', 'pieceColor': 'w', 'availableMovements': [] },
+    //     'b2': { 'pieceType': 'Pawn', 'pieceColor': 'w', 'availableMovements': [] },
+    //     'c2': { 'pieceType': 'Pawn', 'pieceColor': 'w', 'availableMovements': [] },
+    //     'd2': { 'pieceType': 'Pawn', 'pieceColor': 'w', 'availableMovements': [] },
+    //     'e2': { 'pieceType': 'Pawn', 'pieceColor': 'w', 'availableMovements': ['e3', 'e4', 'e7'] },
+    //     'f2': { 'pieceType': 'Pawn', 'pieceColor': 'w', 'availableMovements': [] },
+    //     'h2': { 'pieceType': 'Pawn', 'pieceColor': 'w', 'availableMovements': [] },
+    //     'g2': { 'pieceType': 'Pawn', 'pieceColor': 'w', 'availableMovements': [] },
 
-        'a7': { 'name': 'Pawn', 'color': 'b', 'movements': [] },
-        'b7': { 'name': 'Pawn', 'color': 'b', 'movements': [] },
-        'c7': { 'name': 'Pawn', 'color': 'b', 'movements': [] },
-        'd7': { 'name': 'Pawn', 'color': 'b', 'movements': [] },
-        'e7': { 'name': 'Pawn', 'color': 'b', 'movements': [] },
-        'f7': { 'name': 'Pawn', 'color': 'b', 'movements': [] },
-        'g7': { 'name': 'Pawn', 'color': 'b', 'movements': [] },
-        'h7': { 'name': 'Pawn', 'color': 'b', 'movements': [] },
+    //     'a7': { 'pieceType': 'Pawn', 'pieceColor': 'b', 'availableMovements': [] },
+    //     'b7': { 'pieceType': 'Pawn', 'pieceColor': 'b', 'availableMovements': [] },
+    //     'c7': { 'pieceType': 'Pawn', 'pieceColor': 'b', 'availableMovements': [] },
+    //     'd7': { 'pieceType': 'Pawn', 'pieceColor': 'b', 'availableMovements': [] },
+    //     'e7': { 'pieceType': 'Pawn', 'pieceColor': 'b', 'availableMovements': [] },
+    //     'f7': { 'pieceType': 'Pawn', 'pieceColor': 'b', 'availableMovements': [] },
+    //     'g7': { 'pieceType': 'Pawn', 'pieceColor': 'b', 'availableMovements': [] },
+    //     'h7': { 'pieceType': 'Pawn', 'pieceColor': 'b', 'availableMovements': [] },
 
-        'a8': { 'name': 'Rook', 'color': 'b', 'movements': [] },
-        'b8': { 'name': 'Knight', 'color': 'b', 'movements': [] },
-        'c8': { 'name': 'Bishop', 'color': 'b', 'movements': [] },
-        'd8': { 'name': 'Queen', 'color': 'b', 'movements': [] },
-        'e8': { 'name': 'King', 'color': 'b', 'movements': [] },
-        'f8': { 'name': 'Bishop', 'color': 'b', 'movements': [] },
-        'g8': { 'name': 'Knight', 'color': 'b', 'movements': [] },
-        'h8': { 'name': 'Rook', 'color': 'b', 'movements': [] }
-    })
+    //     'a8': { 'pieceType': 'Rook', 'pieceColor': 'b', 'availableMovements': [] },
+    //     'b8': { 'pieceType': 'Knight', 'pieceColor': 'b', 'availableMovements': [] },
+    //     'c8': { 'pieceType': 'Bishop', 'pieceColor': 'b', 'availableMovements': [] },
+    //     'd8': { 'pieceType': 'Queen', 'pieceColor': 'b', 'availableMovements': [] },
+    //     'e8': { 'pieceType': 'King', 'pieceColor': 'b', 'availableMovements': [] },
+    //     'f8': { 'pieceType': 'Bishop', 'pieceColor': 'b', 'availableMovements': [] },
+    //     'g8': { 'pieceType': 'Knight', 'pieceColor': 'b', 'availableMovements': [] },
+    //     'h8': { 'pieceType': 'Rook', 'pieceColor': 'b', 'availableMovements': [] }
+    // })
+    const [board, setBoard] = useState<Square>({})
     const [view, selectView] = useState<boolean>(false)
 
     const [rowOrder, selectRowOrder] = useState<number[]>([8, 7, 6, 5, 4, 3, 2, 1])
@@ -77,6 +82,37 @@ function Board() {
         showMovements(selectedPiece);
 
     }, [selectedPiece])
+
+    useEffect(() => {
+        axios
+            .get(backendUrl + 'board')
+            .then((res) => {
+                setBoard(res.data.board)
+            })
+    })
+
+    const initializeBoard = () => {
+
+        axios
+            .get(backendUrl + 'initialize')
+            .then((res) => {
+                setBoard(res.data.board)
+            })
+    }
+
+    const movePieceBackend = (selectedPiece: String, targetSquare: String) => {
+
+        axios({
+            method: 'get',
+            url: backendUrl + 'play',
+            params: { "selectedSquare": selectedPiece, "targetSquare": targetSquare },
+
+        }).then((res) => {
+            setBoard(res.data.board)
+        })
+
+
+    }
 
     /** Click event handler.
      *
@@ -140,7 +176,7 @@ function Board() {
     function handleMovements(selectedSquare: string) {
 
         document.getElementById(selectedSquare)?.classList.add("selected")
-        board[selectedSquare].movements.map((id) => {
+        board[selectedSquare].availableMovements.map((id) => {
 
             let child = document.getElementById(id)?.children[0]
             child?.classList.add('move')
@@ -183,6 +219,8 @@ function Board() {
             ...board,
 
         });
+
+        movePieceBackend(selectedPiece, targetSquare)
 
         selectSelectedPiece('')
 
@@ -236,7 +274,7 @@ function Board() {
                                                             selectSelectedPiece('')
                                                         }}>
 
-                                                        <Piece name={board[selectedSquare].name} color={board[selectedSquare].color} /></div>
+                                                        <Piece name={board[selectedSquare].pieceType} color={board[selectedSquare].pieceColor} /></div>
 
                                                     : <div className='empty'></div>}
 
@@ -260,6 +298,7 @@ function Board() {
                 </tbody>
             </table >
             <img onClick={() => selectView(!view)} src={SwitchButton} className='switchButton' width='30px' />
+            <button onClick={initializeBoard}> Reset Board </button>
         </>
     )
 }

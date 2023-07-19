@@ -27,6 +27,12 @@ class Board:
     * the 7th row.
     */
   def initialize(): Unit =
+
+    _board(5) = (0 to 7).map(y => Piece("_", Position(5, y))).toArray
+    _board(4) = (0 to 7).map(y => Piece("_", Position(4, y))).toArray
+    _board(3) = (0 to 7).map(y => Piece("_", Position(3, y))).toArray
+    _board(2) = (0 to 7).map(y => Piece("_", Position(2, y))).toArray
+
     _board(6) = (0 to 7).map(y => Pawn("B", Position(6, y))).toArray
     _board(1) = (0 to 7).map(y => Pawn("W", Position(1, y))).toArray
 
