@@ -88,7 +88,7 @@ object Main extends IOApp {
   val corsService = CORS.policy
     .withAllowOriginHost(
       Set(
-        Origin.Host(Uri.Scheme.http, Uri.RegName("localhost"), Some(5173))
+        Origin.Host(Uri.Scheme.http, Uri.RegName("localhost"), Some(4173))
       )
     )
     .apply(helloWorldService)

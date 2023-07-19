@@ -1,5 +1,4 @@
 import './Piece.scss'
-import { useState, useEffect } from 'react'
 
 import RookB from '../../assets/chess_pieces/Rook_b.svg'
 import RookW from '../../assets/chess_pieces/Rook_w.svg'

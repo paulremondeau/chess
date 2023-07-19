@@ -45,6 +45,7 @@ coverage/
 # next.js
 .next/
 out/
+frontend/config.ts
 
 # production
 build/
