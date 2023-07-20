@@ -121,7 +121,11 @@ class GameAPI:
                   friendlyKing
                 )
               )
-              .map(_.toString())
+              .map(_.toString()),
+            isChecked =
+              if x.isInstanceOf[King] then
+                x.asInstanceOf[King].isChecked(friendlyPieces, enemiesPieces)
+              else false
           )
       ) ++ enemiesPieces
       .map(x =>
@@ -139,7 +143,11 @@ class GameAPI:
                   enemyKing
                 )
               )
-              .map(_.toString())
+              .map(_.toString()),
+            isChecked =
+              if x.isInstanceOf[King] then
+                x.asInstanceOf[King].isChecked(enemiesPieces, friendlyPieces)
+              else false
           )
       )).toMap
 
