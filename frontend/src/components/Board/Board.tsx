@@ -9,9 +9,10 @@ import useSound from 'use-sound';
 
 import moveSfx from '../../assets/move-self.mp3';
 import captureSfx from '../../assets/capture.mp3';
+import beepSfx from '../../assets/lichess-beep.mp3';
 
 interface Square {
-    [key: string]: { 'pieceType': string, 'pieceColor': string, 'availableMovements': string[] };
+    [key: string]: { 'pieceType': string, 'pieceColor': string, 'availableMovements': string[], 'isChecked': boolean };
 }
 
 import SwitchButton from '../../assets/switch.png'
@@ -24,49 +25,37 @@ function Board() {
 
     const [playMove] = useSound(moveSfx);
     const [playCapture] = useSound(captureSfx);
+    const [playBeep] = useSound(beepSfx);
 
-    // const [board, setBoard] = useState<Square>({
-    //     'a1': { 'pieceType': 'Rook', 'pieceColor': 'w', 'availableMovements': [] },
-    //     'b1': { 'pieceType': 'Knight', 'pieceColor': 'w', 'availableMovements': [] },
-    //     'c1': { 'pieceType': 'Bishop', 'pieceColor': 'w', 'availableMovements': [] },
-    //     'd1': { 'pieceType': 'Queen', 'pieceColor': 'w', 'availableMovements': [] },
-    //     'e1': { 'pieceType': 'King', 'pieceColor': 'w', 'availableMovements': [] },
-    //     'f1': { 'pieceType': 'Bishop', 'pieceColor': 'w', 'availableMovements': [] },
-    //     'g1': { 'pieceType': 'Knight', 'pieceColor': 'w', 'availableMovements': [] },
-    //     'h1': { 'pieceType': 'Rook', 'pieceColor': 'w', 'availableMovements': [] },
-
-    //     'a2': { 'pieceType': 'Pawn', 'pieceColor': 'w', 'availableMovements': [] },
-    //     'b2': { 'pieceType': 'Pawn', 'pieceColor': 'w', 'availableMovements': [] },
-    //     'c2': { 'pieceType': 'Pawn', 'pieceColor': 'w', 'availableMovements': [] },
-    //     'd2': { 'pieceType': 'Pawn', 'pieceColor': 'w', 'availableMovements': [] },
-    //     'e2': { 'pieceType': 'Pawn', 'pieceColor': 'w', 'availableMovements': ['e3', 'e4', 'e7'] },
-    //     'f2': { 'pieceType': 'Pawn', 'pieceColor': 'w', 'availableMovements': [] },
-    //     'h2': { 'pieceType': 'Pawn', 'pieceColor': 'w', 'availableMovements': [] },
-    //     'g2': { 'pieceType': 'Pawn', 'pieceColor': 'w', 'availableMovements': [] },
-
-    //     'a7': { 'pieceType': 'Pawn', 'pieceColor': 'b', 'availableMovements': [] },
-    //     'b7': { 'pieceType': 'Pawn', 'pieceColor': 'b', 'availableMovements': [] },
-    //     'c7': { 'pieceType': 'Pawn', 'pieceColor': 'b', 'availableMovements': [] },
-    //     'd7': { 'pieceType': 'Pawn', 'pieceColor': 'b', 'availableMovements': [] },
-    //     'e7': { 'pieceType': 'Pawn', 'pieceColor': 'b', 'availableMovements': [] },
-    //     'f7': { 'pieceType': 'Pawn', 'pieceColor': 'b', 'availableMovements': [] },
-    //     'g7': { 'pieceType': 'Pawn', 'pieceColor': 'b', 'availableMovements': [] },
-    //     'h7': { 'pieceType': 'Pawn', 'pieceColor': 'b', 'availableMovements': [] },
-
-    //     'a8': { 'pieceType': 'Rook', 'pieceColor': 'b', 'availableMovements': [] },
-    //     'b8': { 'pieceType': 'Knight', 'pieceColor': 'b', 'availableMovements': [] },
-    //     'c8': { 'pieceType': 'Bishop', 'pieceColor': 'b', 'availableMovements': [] },
-    //     'd8': { 'pieceType': 'Queen', 'pieceColor': 'b', 'availableMovements': [] },
-    //     'e8': { 'pieceType': 'King', 'pieceColor': 'b', 'availableMovements': [] },
-    //     'f8': { 'pieceType': 'Bishop', 'pieceColor': 'b', 'availableMovements': [] },
-    //     'g8': { 'pieceType': 'Knight', 'pieceColor': 'b', 'availableMovements': [] },
-    //     'h8': { 'pieceType': 'Rook', 'pieceColor': 'b', 'availableMovements': [] }
-    // })
     const [board, setBoard] = useState<Square>({})
     const [view, selectView] = useState<boolean>(false)
 
     const [rowOrder, selectRowOrder] = useState<number[]>([8, 7, 6, 5, 4, 3, 2, 1])
     const [columnOrder, selectcolumnOrder] = useState<number[]>([1, 2, 3, 4, 5, 6, 7, 8])
+
+    const [winner, setWinner] = useState<string>("")
+    const [turn, setTurn] = useState<string>("")
+
+    useEffect(() => {
+
+        for (const element of document.querySelectorAll(".checked")) {
+            element.classList.remove("checked")
+        };
+
+        let k: keyof typeof board;  // Type is "one" | "two" | "three"
+        for (k in board) {
+
+            if (board[k].isChecked) {
+
+                document.getElementById(k)?.classList.add("checked")
+            }
+        }
+
+    }, [board])
+
+    useEffect(() => {
+        playBeep()
+    }, [winner])
 
     useEffect(() => {
 
@@ -88,7 +77,7 @@ function Board() {
             .then((res) => {
                 setBoard(res.data.board)
             })
-    })
+    }, [])
 
     const initializeBoard = () => {
 
@@ -96,6 +85,10 @@ function Board() {
             .get(backendUrl + 'initialize')
             .then((res) => {
                 setBoard(res.data.board)
+                console.log(res.data.turn)
+                setTurn(res.data.turn)
+                setWinner("")
+                playBeep()
             })
     }
 
@@ -108,6 +101,8 @@ function Board() {
 
         }).then((res) => {
             setBoard(res.data.board)
+            setTurn(res.data.turn)
+            setWinner(res.data.winner)
         })
 
 
@@ -130,9 +125,7 @@ function Board() {
         if (eventType == 'click') {
 
 
-            const className: string = target.className
-
-            if (className == 'dark' || className == 'light') {
+            if (target.classList.contains('dark') || target.classList.contains('light')) {
 
                 const childDiv: Element = target.children[0]
 
@@ -208,21 +201,26 @@ function Board() {
      */
     function movePiece(targetSquare: string) {
 
-        Object.keys(board).indexOf(targetSquare) > -1 ? playCapture() : playMove()
+        console.log(board[selectedPiece].pieceColor)
+        console.log(turn)
+
+        if (board[selectedPiece].pieceColor == turn) {
+
+            Object.keys(board).indexOf(targetSquare) > -1 ? playCapture() : playMove()
 
 
-        board[targetSquare] = board[selectedPiece]
-        delete board[selectedPiece]
+            board[targetSquare] = board[selectedPiece]
+            delete board[selectedPiece]
 
-        setBoard({
-            ...board,
+            setBoard({
+                ...board,
 
-        });
+            });
 
-        movePieceBackend(selectedPiece, targetSquare)
+            movePieceBackend(selectedPiece, targetSquare)
 
-        selectSelectedPiece('')
-
+            selectSelectedPiece('')
+        }
     }
 
 

@@ -48,7 +48,8 @@ case class PieceMovement(
 case class PieceInformation(
     pieceType: String,
     pieceColor: String,
-    availableMovements: List[String]
+    availableMovements: List[String],
+    isChecked: Boolean
 )
 
 case class DataOutputFormat(
@@ -72,15 +73,33 @@ object Main extends IOApp {
 
         println(game.board)
 
-        Ok(DataOutputFormat(game.winner, game.turn, board))
+        Ok(
+          DataOutputFormat(
+            game.winner.toLowerCase(),
+            game.turn.toLowerCase(),
+            board
+          )
+        )
 
       case req @ GET -> Root / "initialize" =>
         game.board.initialize()
         println(game.board)
-        Ok(DataOutputFormat(game.winner, game.turn, game.convertForFrontend()))
+        Ok(
+          DataOutputFormat(
+            game.winner.toLowerCase(),
+            game.turn.toLowerCase(),
+            game.convertForFrontend()
+          )
+        )
 
       case req @ GET -> Root / "board" =>
-        Ok(DataOutputFormat(game.winner, game.turn, game.convertForFrontend()))
+        Ok(
+          DataOutputFormat(
+            game.winner.toLowerCase(),
+            game.turn.toLowerCase(),
+            game.convertForFrontend()
+          )
+        )
 
     }
     .orNotFound
@@ -88,7 +107,8 @@ object Main extends IOApp {
   val corsService = CORS.policy
     .withAllowOriginHost(
       Set(
-        Origin.Host(Uri.Scheme.http, Uri.RegName(frontEndUrl), Some(frontEndPort))
+        Origin
+          .Host(Uri.Scheme.http, Uri.RegName(frontEndUrl), Some(frontEndPort))
       )
     )
     .apply(helloWorldService)
