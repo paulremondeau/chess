@@ -96,7 +96,7 @@ object Main extends IOApp {
   val server = EmberServerBuilder
     .default[IO]
     .withHost(ipv4"0.0.0.0")
-    .withPort(port"8080")
+    .withPort(port"8000")
     .withHttpApp(corsService)
     .build
 
