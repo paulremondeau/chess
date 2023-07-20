@@ -20,7 +20,7 @@ COPY . .
 RUN npm run build
 
 # Expose a port
-EXPOSE 4173
+EXPOSE 8080
 
 # Executables
 CMD [ "npm", "run", "deploy" ]
