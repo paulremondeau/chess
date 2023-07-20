@@ -18,8 +18,9 @@ jobs:
         distribution: temurin
         java-version: 16
     
-    - run: echo $'final val frontEndUrl = ""\n\nfinal val frontEndPort = 0000' > Config.scala 
+    - run: echo $'final val frontEndUrl = "localhost"\n\nfinal val frontEndPort = 4173' > Config.scala 
       working-directory: './backend/src/main/scala/'
+
     - name: Build and Test
       run: sbt -v +test
       working-directory: './backend'
