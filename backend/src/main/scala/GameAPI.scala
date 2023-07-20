@@ -51,6 +51,11 @@ class GameAPI:
   def board: Board = _board
   _board.initialize()
 
+  def initialize(): Unit =
+    _board.initialize()
+    _turn = "W"
+    nextTurn = "B"
+
   /** A list of all the pieces of the given color.
     */
   val colorPiece = (color: String) =>

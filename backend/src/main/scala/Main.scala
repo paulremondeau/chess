@@ -82,7 +82,8 @@ object Main extends IOApp {
         )
 
       case req @ GET -> Root / "initialize" =>
-        game.board.initialize()
+        game.initialize()
+
         println(game.board)
         Ok(
           DataOutputFormat(
