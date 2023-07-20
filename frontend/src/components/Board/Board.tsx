@@ -18,8 +18,7 @@ import SwitchButton from '../../assets/switch.png'
 
 import axios from 'axios'
 
-const backendUrl: String = 'http://127.0.0.1:8080/'
-
+import backendUrl from '../../../config'
 
 function Board() {
 
