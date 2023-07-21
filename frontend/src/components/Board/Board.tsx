@@ -1,5 +1,5 @@
 import './Board.scss'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 
 import Piece from '../Piece/Piece'
 import { convertSquare } from '../../utils/convertSquare'
@@ -21,7 +21,16 @@ import axios from 'axios'
 
 import backendUrl from '../../../config'
 
+import Promotion from '../Promotion/Promotion'
+
+
+
+
 function Board() {
+
+    const [colorPromotion, setColorPromotion] = useState<string>("w")
+    const [promotionPiece, selectPromotionPiece] = useState<string>("")
+    const [targetSquarePromotion, selectTargetSquarePromotion] = useState<string>("")
 
     const [playMove] = useSound(moveSfx);
     const [playCapture] = useSound(captureSfx);
@@ -76,6 +85,8 @@ function Board() {
             .get(backendUrl + 'board')
             .then((res) => {
                 setBoard(res.data.board)
+                setTurn(res.data.turn)
+                setWinner(res.data.winner)
             })
     }, [])
 
@@ -85,19 +96,21 @@ function Board() {
             .get(backendUrl + 'initialize')
             .then((res) => {
                 setBoard(res.data.board)
-                console.log(res.data.turn)
+
                 setTurn(res.data.turn)
                 setWinner("")
                 playBeep()
             })
     }
 
+
+
     const movePieceBackend = (selectedPiece: String, targetSquare: String) => {
 
         axios({
             method: 'get',
             url: backendUrl + 'play',
-            params: { "selectedSquare": selectedPiece, "targetSquare": targetSquare },
+            params: { "selectedSquare": selectedPiece, "targetSquare": targetSquare, "promotion": promotionPiece[0] },
 
         }).then((res) => {
             setBoard(res.data.board)
@@ -108,13 +121,15 @@ function Board() {
 
     }
 
+
+
     /** Click event handler.
      *
      * @param e 
      */
-    const handleClick = (e: React.MouseEvent) => {
+    const handleClick = async (e: React.MouseEvent) => {
 
-        console.log(e.type)
+
 
         const eventType = e.type
         const target = e.currentTarget
@@ -137,6 +152,7 @@ function Board() {
                     selectSelectedPiece(componentId)
 
                 }
+
             }
         }
 
@@ -190,6 +206,7 @@ function Board() {
         };
     }
 
+
     /**
      * Move a piece on the board.
      * 
@@ -201,36 +218,68 @@ function Board() {
      */
     function movePiece(targetSquare: string) {
 
-        console.log(board[selectedPiece].pieceColor)
-        console.log(turn)
 
         if (board[selectedPiece].pieceColor == turn) {
 
-            Object.keys(board).indexOf(targetSquare) > -1 ? playCapture() : playMove()
+            if (board[selectedPiece].pieceType == "Pawn" && ((board[selectedPiece].pieceColor == "w" && targetSquare[1] == "8") // Promotion
+                || (board[selectedPiece].pieceColor == "b" && targetSquare[1] == "1"))) {
+
+                doPromotion()
+                selectTargetSquarePromotion(targetSquare)
+
+            } else {
+                Object.keys(board).indexOf(targetSquare) > -1 ? playCapture() : playMove()
 
 
-            board[targetSquare] = board[selectedPiece]
-            delete board[selectedPiece]
+                board[targetSquare] = board[selectedPiece]
+                delete board[selectedPiece]
 
-            setBoard({
-                ...board,
+                setBoard({
+                    ...board,
 
-            });
+                });
 
-            movePieceBackend(selectedPiece, targetSquare)
+                movePieceBackend(selectedPiece, targetSquare)
 
-            selectSelectedPiece('')
+                selectSelectedPiece('')
+            }
+
+
         }
     }
 
 
+    const doPromotion = () => {
+
+        setColorPromotion(board[selectedPiece].pieceColor)
+        document.getElementById('modal')!.style.visibility = 'visible'
+
+    }
+
+    function selectPromotion(name: string, color: string) {
+
+        selectPromotionPiece(name[0])
+        setBoard({ ...board, [selectedPiece]: { 'pieceType': name, 'pieceColor': color, 'availableMovements': [], 'isChecked': false } })
+        document.getElementById('modal')!.style.visibility = 'hidden'
+        movePiece(targetSquarePromotion)
+
+    }
+
     return (
         <>
 
+            <div className="modal" id="modal">
+                <div className="modal-back"></div>
+                <div className="modal-container">
+                    <Promotion color={colorPromotion} onInteraction={selectPromotion} />
+                </div>
+            </div>
             <table className='board'>
+
                 <tbody>
                     {rowOrder.map((rowNumber) => {
                         return (
+
                             <tr className='row' key={rowNumber} id={rowNumber.toString()} >
                                 <p className='rowNumber'>{rowNumber}</p>
                                 {
@@ -296,8 +345,12 @@ function Board() {
             </table >
             <img onClick={() => selectView(!view)} src={SwitchButton} className='switchButton' width='30px' />
             <button onClick={initializeBoard}> Reset Board </button>
+
+
+
         </>
     )
 }
+
 
 export default Board

@@ -49,7 +49,7 @@ const convertDict: {
 }
 
 
-function Piece({ name, color }: { name: string, color: string, movements?: [number, number][] }) {
+function Piece({ name, color }: { name: string, color: string }) {
 
     return (
         <>
