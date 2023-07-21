@@ -65,7 +65,7 @@ object Main extends IOApp {
   val helloWorldService = HttpRoutes
     .of[IO] {
       case req @ GET -> Root / "play" =>
-        println(req.params.apply("promotion"))
+        println(req.params)
         val board: Map[String, PieceInformation] = game.play(
           req.params.apply("selectedSquare"),
           req.params.apply("targetSquare"),

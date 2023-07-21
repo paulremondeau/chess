@@ -1,5 +1,5 @@
 import './Board.scss'
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect } from 'react'
 
 import Piece from '../Piece/Piece'
 import { convertSquare } from '../../utils/convertSquare'
@@ -29,7 +29,7 @@ import Promotion from '../Promotion/Promotion'
 function Board() {
 
     const [colorPromotion, setColorPromotion] = useState<string>("w")
-    const [promotionPiece, selectPromotionPiece] = useState<string>("")
+    const [promotionPiece, selectPromotionPiece] = useState<string>("_")
     const [targetSquarePromotion, selectTargetSquarePromotion] = useState<string>("")
 
     const [playMove] = useSound(moveSfx);
