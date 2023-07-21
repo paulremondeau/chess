@@ -1,3 +1,3 @@
-const backendUrl: String = "http://localhost:8080/"
+const backendUrl: String = "http://localhost:8000/"
 
 export default backendUrl

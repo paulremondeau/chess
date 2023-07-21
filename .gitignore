@@ -48,6 +48,7 @@ out/
 
 # production
 build/
+backend/src/main/scala/Config.scala
 
 # misc
 *.DS_Store

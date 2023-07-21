@@ -48,7 +48,8 @@ case class PieceMovement(
 case class PieceInformation(
     pieceType: String,
     pieceColor: String,
-    availableMovements: List[String]
+    availableMovements: List[String],
+    isChecked: Boolean
 )
 
 case class DataOutputFormat(
@@ -72,15 +73,34 @@ object Main extends IOApp {
 
         println(game.board)
 
-        Ok(DataOutputFormat(game.winner, game.turn, board))
+        Ok(
+          DataOutputFormat(
+            game.winner.toLowerCase(),
+            game.turn.toLowerCase(),
+            board
+          )
+        )
 
       case req @ GET -> Root / "initialize" =>
-        game.board.initialize()
+        game.initialize()
+
         println(game.board)
-        Ok(DataOutputFormat(game.winner, game.turn, game.convertForFrontend()))
+        Ok(
+          DataOutputFormat(
+            game.winner.toLowerCase(),
+            game.turn.toLowerCase(),
+            game.convertForFrontend()
+          )
+        )
 
       case req @ GET -> Root / "board" =>
-        Ok(DataOutputFormat(game.winner, game.turn, game.convertForFrontend()))
+        Ok(
+          DataOutputFormat(
+            game.winner.toLowerCase(),
+            game.turn.toLowerCase(),
+            game.convertForFrontend()
+          )
+        )
 
     }
     .orNotFound
@@ -88,7 +108,8 @@ object Main extends IOApp {
   val corsService = CORS.policy
     .withAllowOriginHost(
       Set(
-        Origin.Host(Uri.Scheme.http, Uri.RegName("localhost"), Some(4173))
+        Origin
+          .Host(Uri.Scheme.http, Uri.RegName(frontEndUrl), Some(frontEndPort))
       )
     )
     .apply(helloWorldService)
@@ -96,7 +117,7 @@ object Main extends IOApp {
   val server = EmberServerBuilder
     .default[IO]
     .withHost(ipv4"0.0.0.0")
-    .withPort(port"8080")
+    .withPort(port"8000")
     .withHttpApp(corsService)
     .build
 

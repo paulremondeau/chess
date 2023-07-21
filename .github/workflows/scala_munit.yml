@@ -10,11 +10,17 @@ jobs:
     steps:
     - name: Checkout
       uses: actions/checkout@v3
+  
     - name: Setup JDK
       uses: actions/setup-java@v3
+
       with:
         distribution: temurin
         java-version: 16
+    
+    - run: echo $'final val frontEndUrl = "localhost"\n\nfinal val frontEndPort = 4173' > Config.scala 
+      working-directory: './backend/src/main/scala/'
+
     - name: Build and Test
       run: sbt -v +test
       working-directory: './backend'

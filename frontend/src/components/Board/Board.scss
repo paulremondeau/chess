@@ -5,6 +5,12 @@ $squareSize: 55px;
     display: flex;
     background-color: $background-color;
 
+    &.checked {
+        background-image: radial-gradient(circle, rgb(252, 0, 0), transparent 100%);
+        height: $squareSize;
+        width: $squareSize;
+    }
+
     .empty {
         height: 100%;
         width: 100%;
@@ -26,6 +32,8 @@ $squareSize: 55px;
         display: flex;
 
 
+
+
         &.move {
             display: flex;
             background-image: url('/src/assets/movePiece.png');
@@ -37,6 +45,7 @@ $squareSize: 55px;
         }
     }
 }
+
 
 
 table.board {
@@ -58,7 +67,8 @@ table.board {
 
             &.dark {
 
-                @include square(rgb(172, 120, 18));
+                @include square(rgb(180, 133, 30));
+
 
                 &.selected {
                     background-color: rgb(110, 80, 18);
@@ -68,7 +78,7 @@ table.board {
 
             &.light {
 
-                @include square(blanchedalmond);
+                @include square(rgb(233, 195, 163));
 
                 &.selected {
                     background-color: rgb(190, 177, 158);
