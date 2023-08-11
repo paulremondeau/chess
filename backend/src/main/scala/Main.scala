@@ -102,7 +102,7 @@ object Main extends IOApp {
           )
         )
 
-      case Root =>
+      case GET -> Root =>
         Ok()
 
     }
