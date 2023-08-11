@@ -102,9 +102,6 @@ object Main extends IOApp {
           )
         )
 
-      case GET -> Root =>
-        Ok()
-
     }
     .orNotFound
 
