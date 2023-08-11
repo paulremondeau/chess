@@ -102,6 +102,9 @@ object Main extends IOApp {
           )
         )
 
+      case Root =>
+        Ok()
+
     }
     .orNotFound
 
