@@ -38,9 +38,6 @@ class Pawn(c: String, p: Position) extends Piece(c, p):
     * If a pawn makes its first move, it can move two squares at once if the
     * path is clear.
     *
-    * @todo
-    *   implements en passant
-    *
     * @param friendlyPieces
     *   Allies pieces.
     * @param enemiesPieces
