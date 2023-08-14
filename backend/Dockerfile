@@ -9,5 +9,7 @@ WORKDIR /app
 # Copy the project files
 COPY . .
 
+EXPOSE 8080
+
 # Executables
 CMD [ "sbt", "run" ]
