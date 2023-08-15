@@ -46,6 +46,29 @@ $squareSize: 55px;
     }
 }
 
+.modal {
+    display: block;
+    visibility: hidden;
+}
+
+.modal-back {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, .25);
+    pointer-events: none
+}
+
+.modal-container {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    padding: 5px;
+    background: rgba(0, 0, 0, .50);
+    transform: translate(-50%, -50%)
+}
 
 
 table.board {
@@ -67,7 +90,7 @@ table.board {
 
             &.dark {
 
-                @include square(rgb(180, 133, 30));
+                @include square(rgb(182, 133, 0));
 
 
                 &.selected {
@@ -78,7 +101,7 @@ table.board {
 
             &.light {
 
-                @include square(rgb(233, 195, 163));
+                @include square(antiquewhite);
 
                 &.selected {
                     background-color: rgb(190, 177, 158);
