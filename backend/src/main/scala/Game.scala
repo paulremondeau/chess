@@ -201,10 +201,10 @@ class Game:
               case pawn: Pawn =>
                 if (pawn.color == "B" && selectedRowMove == 0) || (pawn.color == "W" && selectedRowMove == 7) // pawn can promote
                 then
-                  println("Choose how to promote your pawn (Q, R, B, N): ")
+                  println("Choose how to promote your pawn (Q, R, B, K): ")
                   var promotion = readLine()
                   while (
-                    !List[String]("Q", "B", "R", "N").contains(promotion)
+                    !List[String]("Q", "B", "R", "K").contains(promotion)
                   ) {
                     promotion = readLine()
                   }

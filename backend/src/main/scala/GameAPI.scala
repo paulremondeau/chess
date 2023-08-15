@@ -55,6 +55,7 @@ class GameAPI:
     _board.initialize()
     _turn = "W"
     nextTurn = "B"
+    _winner = ""
 
   /** A list of all the pieces of the given color.
     */

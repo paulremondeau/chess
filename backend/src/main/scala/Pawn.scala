@@ -105,6 +105,6 @@ class Pawn(c: String, p: Position) extends Piece(c, p):
       case "Q" => Queen(color, position)
       case "B" => Bishop(color, position)
       case "R" => Rook(color, position)
-      case "N" => Knight(color, position)
+      case "K" => Knight(color, position)
 
 end Pawn

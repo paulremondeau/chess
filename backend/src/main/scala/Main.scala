@@ -106,13 +106,18 @@ object Main extends IOApp {
     }
     .orNotFound
 
+  /** @todo
+    *   remove allow origin all and make it safer by making only frontend able
+    *   to share ressources
+    */
   val corsService = CORS.policy
-    .withAllowOriginHost(
-      Set(
-        Origin
-          .Host(Uri.Scheme.http, Uri.RegName(frontEndUrl), Some(frontEndPort))
-      )
-    )
+    // .withAllowOriginHost(
+    //   Set(
+    //     Origin
+    //       .Host(Uri.Scheme.http, Uri.RegName(frontEndUrl), Some(frontEndPort))
+    //   )
+    // )
+    .withAllowOriginAll
     .apply(helloWorldService)
 
   val server = EmberServerBuilder
