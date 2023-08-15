@@ -247,9 +247,6 @@ function Board() {
      */
     function movePiece(targetSquare: string) {
 
-        console.log(targetSquare)
-        console.log(promotionPiece)
-
 
         if (board[selectedPiece].pieceColor == turn) {
 
