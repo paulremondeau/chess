@@ -55,6 +55,7 @@ class GameAPI:
     _board.initialize()
     _turn = "W"
     nextTurn = "B"
+    _winner = ""
 
   /** A list of all the pieces of the given color.
     */
@@ -205,7 +206,7 @@ class GameAPI:
   def play(
       selectedSquare: String,
       targetSquare: String,
-      promotion: Option[String]
+      promotion: String
   ): Map[String, PieceInformation] =
 
     val selectedRow = convertPos(selectedSquare)(0)
@@ -221,7 +222,7 @@ class GameAPI:
         if (pawn.color == "B" && selectedRowMove == 0) || (pawn.color == "W" && selectedRowMove == 7) // pawn can promote
         then
 
-          val newPiece = pawn.promote(promotion.get)
+          val newPiece = pawn.promote(promotion)
           _board.movePiece(
             pawn,
             selectedPos

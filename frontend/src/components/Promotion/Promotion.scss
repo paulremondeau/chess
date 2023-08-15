@@ -1,0 +1,20 @@
+$squareSize: 55px;
+
+.container {
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    // background-color: rgb(94, 83, 83);
+    padding: 0;
+    margin: 0;
+
+    ul {
+        display: inline;
+        justify-content: center;
+        align-items: center;
+        list-style-type: none;
+        padding: 0;
+        margin: 0;
+    }
+}

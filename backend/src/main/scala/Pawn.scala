@@ -38,9 +38,6 @@ class Pawn(c: String, p: Position) extends Piece(c, p):
     * If a pawn makes its first move, it can move two squares at once if the
     * path is clear.
     *
-    * @todo
-    *   implements en passant
-    *
     * @param friendlyPieces
     *   Allies pieces.
     * @param enemiesPieces
@@ -108,6 +105,6 @@ class Pawn(c: String, p: Position) extends Piece(c, p):
       case "Q" => Queen(color, position)
       case "B" => Bishop(color, position)
       case "R" => Rook(color, position)
-      case "N" => Knight(color, position)
+      case "K" => Knight(color, position)
 
 end Pawn
