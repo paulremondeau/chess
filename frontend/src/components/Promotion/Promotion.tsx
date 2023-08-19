@@ -9,7 +9,7 @@ function Promotion({ color, onInteraction }: { color: string, onInteraction: any
                 <ul>
                     {["Queen", "Rook", "Knight", "Bishop"].map((name) => {
                         return (
-                            < li onClick={() => { onInteraction(name, color) }}>
+                            < li onClick={() => { onInteraction(name, color) }} key={name}>
                                 <Piece name={name} color={color} />
                             </li>
                         )

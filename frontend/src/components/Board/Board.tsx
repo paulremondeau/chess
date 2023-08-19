@@ -119,16 +119,20 @@ function Board() {
         setWinner(res.data.winner)
     }
 
+    const MINUTE_MS = 500;
     /**
-     * When loading the page, fetch the board.
-     * @todo make this request every 0.5 seconds for updates.
+     * Fetch backend every 0.5 seconds to see board update.
      */
     useEffect(() => {
-        axios
-            .get(backendUrl + 'board')
-            .then((res) => {
-                updateBoardData(res)
-            })
+        const interval = setInterval(() => {
+            axios
+                .get(backendUrl + 'board')
+                .then((res) => {
+                    updateBoardData(res)
+                })
+        }, MINUTE_MS);
+
+        return () => clearInterval(interval); // This represents the unmount function, in which you need to clear your interval to prevent memory leaks.
     }, [])
 
     /**
@@ -373,7 +377,7 @@ function Board() {
                     <tr className='row'>
                         {[''].concat(columnOrder.map(p => convertSquare(0, p)).map(p => p[0])).map((columnNumber) => {
                             return (
-                                <td className='columnNumber'>
+                                <td className='columnNumber' key={columnNumber} id={columnNumber.toString()}>
                                     {columnNumber}
                                 </td>)
                         })}
