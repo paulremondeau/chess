@@ -377,7 +377,7 @@ function Board() {
                     <tr className='row'>
                         {[''].concat(columnOrder.map(p => convertSquare(0, p)).map(p => p[0])).map((columnNumber) => {
                             return (
-                                <td className='columnNumber'>
+                                <td className='columnNumber' key={columnNumber} id={columnNumber.toString()}>
                                     {columnNumber}
                                 </td>)
                         })}
