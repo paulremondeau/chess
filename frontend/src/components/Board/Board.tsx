@@ -356,23 +356,24 @@ function Board() {
                     <Promotion color={colorPromotion} onInteraction={selectPromotion} />
                 </div>
             </div>
-            <div className='main'>
-                <div className='timer'>{sideView ? whiteTimer : blackTimer}</div>
-                <table className='board'>
-
-                    <tbody>
+            <div className='mainBoard'>
+                <div className='container'>
+                    <div className='timer'>
+                        {sideView ? whiteTimer : blackTimer}
+                    </div>
+                    <div className='board_table'>
                         {rowOrder.map((rowNumber) => {
                             return (
 
-                                <tr className='row' key={rowNumber} id={rowNumber.toString()} >
+                                <div className='board_row' key={rowNumber} id={rowNumber.toString()} >
                                     <p className='rowNumber'>{rowNumber}</p>
                                     {
                                         columnOrder.map((columnNumber) => {
                                             let selectedSquare: string = convertSquare(rowNumber, columnNumber);
 
                                             return (
-                                                <td key={selectedSquare} id={convertSquare(rowNumber, columnNumber)}
-                                                    className={(rowNumber + columnNumber) % 2 == 0 ? 'dark' : 'light'}
+                                                <div key={selectedSquare} id={convertSquare(rowNumber, columnNumber)}
+                                                    className={'board_data ' + ((rowNumber + columnNumber) % 2 == 0 ? 'dark' : 'light')}
                                                     onDrop={(e) => {
 
                                                         if (e.currentTarget.classList.contains('dark') || e.currentTarget.classList.contains('light')) {
@@ -408,29 +409,30 @@ function Board() {
 
                                                         : <div className='empty'></div>}
 
-                                                </td>)
+                                                </div>)
                                         })
                                     }
 
-                                </tr>
+                                </div>
                             )
                         }
                         )}
-                        <tr className='row'>
+                        <div className='board_row'>
                             {[''].concat(columnOrder.map(p => convertSquare(0, p)).map(p => p[0])).map((columnNumber) => {
                                 return (
-                                    <td className='columnNumber' key={columnNumber} id={columnNumber.toString()}>
+                                    <div className='board_data columnNumber' key={columnNumber} id={columnNumber.toString()}>
                                         {columnNumber}
-                                    </td>)
+                                    </div>)
                             })}
 
-                        </tr>
-                    </tbody>
-                </table >
-                <div className='timer'>{sideView ? blackTimer : whiteTimer}</div>
+                        </div>
+                    </div >
+                    <div className='timer'>{sideView ? blackTimer : whiteTimer}</div>
+                    <img onClick={() => selectSideView(!sideView)} src={SwitchButton} className='switchButton' width='30px' />
+                    <button onClick={initializeBoard}> Reset Board </button>
+                </div>
             </div>
-            <img onClick={() => selectSideView(!sideView)} src={SwitchButton} className='switchButton' width='30px' />
-            <button onClick={initializeBoard}> Reset Board </button>
+
 
         </>
     )

@@ -8,8 +8,15 @@ function App() {
 
   return (
     <>
+      <div className='body'>
+        <div className='header'>
+          PH
+        </div>
+        <div className='board'>
+          <Board />
+        </div>
+      </div>
 
-      <Board />
     </>
   )
 }

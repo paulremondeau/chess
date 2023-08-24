@@ -5,8 +5,6 @@ import { useRef, useEffect } from 'react'
 
 import { Duration, DateTime } from "luxon";
 
-import { MutableRefObject } from 'react';
-
 interface TimePlays {
     [key: string]: number[];
 }
@@ -19,7 +17,8 @@ function Timer({ timeLimit,
     onInteraction,
     foo }:
     {
-        timeLimit: number, turn: boolean,
+        timeLimit: number,
+        turn: boolean,
         lastPlayTimes: TimePlays,
         color: string,
         opponent: string,
@@ -70,8 +69,7 @@ function Timer({ timeLimit,
     useEffect(() => {
 
         const interval = setInterval(() => {
-            if (turn && (lastPlayTimes[color].length > 0)) {
-
+            if (turn && lastPlayTimes[color].length > 0) {
                 timer.current = Math.max(0, timer.current - 1000)
             }
         }, 1000);
@@ -82,8 +80,8 @@ function Timer({ timeLimit,
     const logMe = () => {
         // console.log(DateTime.now().toUTC().toMillis())
         console.log(lastPlayTimes)
-        console.log(lastPlayTimes == lastPlayTimes)
-
+        console.log(lastPlayTimes[color].length > 0)
+        console.log(turn)
         console.log(timePlayTurn(lastPlayTimes[color], lastPlayTimes[opponent]))
 
     }
