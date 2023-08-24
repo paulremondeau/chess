@@ -14,6 +14,7 @@ function Timer({ timeLimit,
     lastPlayTimes,
     color,
     opponent,
+    gameClock,
     onInteraction, // for losing on time
     foo }:
     {
@@ -22,6 +23,7 @@ function Timer({ timeLimit,
         lastPlayTimes: TimePlays,
         color: string,
         opponent: string,
+        gameClock: number,
         onInteraction: any,
         foo: React.MutableRefObject<number>
     }) {
@@ -30,7 +32,7 @@ function Timer({ timeLimit,
 
     function timePlayTurn(plays: number[], playsOpponent: number[]): number {
 
-        const tempArray: number[] = plays.concat(DateTime.now().toUTC().toMillis())
+        const tempArray: number[] = plays.concat(gameClock)
 
         if (plays.length < playsOpponent.length) { // Black turn to play
             null
@@ -59,30 +61,29 @@ function Timer({ timeLimit,
 
     useEffect(() => {
         if (turn) {
-            timer.current = (lastPlayTimes[color].length > 0 ? timer.current - timePlayTurn(lastPlayTimes[color], lastPlayTimes[opponent]) : timeLimit)
+            timer.current = (lastPlayTimes[color].length > 0 ? timeLimit - timePlayTurn(lastPlayTimes[color], lastPlayTimes[opponent]) : timeLimit)
         } else {
-            timer.current = (lastPlayTimes[opponent].length > 0 ? timer.current - timePlayNotTurn(lastPlayTimes[color], lastPlayTimes[opponent]) : timeLimit)
+            timer.current = (lastPlayTimes[color].length > 1 ? timeLimit - timePlayNotTurn(lastPlayTimes[color], lastPlayTimes[opponent]) : timeLimit)
         }
-    }, [foo.current])
+    }, [gameClock])
 
 
-    useEffect(() => {
+    // useEffect(() => {
 
-        const interval = setInterval(() => {
-            if (turn && lastPlayTimes[color].length > 0) {
-                timer.current = Math.max(0, timer.current - 1000)
-            }
-        }, 1000);
-        return () => clearInterval(interval);
-    }, [turn]);
+    //     const interval = setInterval(() => {
+    //         if (turn && lastPlayTimes[color].length > 0) {
+    //             timer.current = Math.max(0, timer.current - 1000)
+    //         }
+    //     }, 1000);
+    //     return () => clearInterval(interval);
+    // }, [turn]);
+
 
 
     const logMe = () => {
         // console.log(DateTime.now().toUTC().toMillis())
         console.log(lastPlayTimes)
-        console.log(lastPlayTimes[color].length > 0)
-        console.log(turn)
-        console.log(timePlayTurn(lastPlayTimes[color], lastPlayTimes[opponent]))
+        console.log(gameClock)
 
     }
 

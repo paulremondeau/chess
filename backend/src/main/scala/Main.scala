@@ -57,7 +57,8 @@ case class DataOutputFormat(
     winner: String,
     turn: String,
     board: Map[String, PieceInformation],
-    timesPlay: scala.collection.mutable.Map[String, Array[Long]]
+    timesPlay: scala.collection.mutable.Map[String, Array[Long]],
+    gameClock: Long
 )
 
 object Main extends IOApp {
@@ -84,7 +85,8 @@ object Main extends IOApp {
             game.winner.toLowerCase(),
             game.turn.toLowerCase(),
             board,
-            game.timesPlay
+            game.timesPlay,
+            System.currentTimeMillis()
           )
         )
 
@@ -99,7 +101,8 @@ object Main extends IOApp {
             game.winner.toLowerCase(),
             game.turn.toLowerCase(),
             game.convertForFrontend(),
-            game.timesPlay
+            game.timesPlay,
+            System.currentTimeMillis()
           )
         )
 
@@ -109,7 +112,8 @@ object Main extends IOApp {
             game.winner.toLowerCase(),
             game.turn.toLowerCase(),
             game.convertForFrontend(),
-            game.timesPlay
+            game.timesPlay,
+            System.currentTimeMillis()
           )
         )
 

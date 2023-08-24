@@ -66,6 +66,7 @@ function Board() {
     const [winner, setWinner] = useState<string>("")
     const [turn, setTurn] = useState<string>("")
     const timeLimit: number = 600000
+    const [gameClock, setGameClock] = useState<number>(0)
 
     /// Sounds
     const [playMove] = useSound(moveSfx);
@@ -83,6 +84,7 @@ function Board() {
         lastPlayTimes={timesPlay}
         color={"w"}
         opponent={"b"}
+        gameClock={gameClock}
         onInteraction={selectPromotion}
         foo={foo} /> : null)
 
@@ -91,6 +93,7 @@ function Board() {
         lastPlayTimes={timesPlay}
         color={"b"}
         opponent={"w"}
+        gameClock={gameClock}
         onInteraction={selectPromotion}
         foo={foo} /> : null)
 
@@ -151,14 +154,16 @@ function Board() {
      * @param res The axios response from the backend.
      */
     function updateBoardData(res: AxiosResponse) {
+        console.log(res)
         setBoard(res.data.board)
         setTurn(res.data.turn)
         setWinner(res.data.winner)
         setTimesPlay(res.data.timesPlay)
+        setGameClock(res.data.gameClock)
 
     }
 
-    const MINUTE_MS = 500;
+    const MINUTE_MS = 300;
     /**
      * Fetch backend every 0.5 seconds to see board update.
      */
@@ -228,8 +233,6 @@ function Board() {
 
             document.getElementById('modal')!.style.visibility = 'hidden'
             if (target.classList.contains('dark') || target.classList.contains('light')) {
-                console.log("foo")
-                console.log(selectedPiece)
 
                 const childDiv: Element = target.children[0]
                 const classList: DOMTokenList = childDiv.classList
