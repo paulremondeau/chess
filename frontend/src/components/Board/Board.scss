@@ -70,58 +70,67 @@ $squareSize: 55px;
     transform: translate(-50%, -50%)
 }
 
+.main {
 
-table.board {
-
-    tr.row {
-
+    .timer {
         display: flex;
-
-        td {
-            display: flex;
-            border-radius: 0%;
-            justify-content: center;
-            text-align: left;
-            align-items: center;
-            width: $squareSize;
-            height: $squareSize;
-
-
-
-            &.dark {
-
-                @include square(rgb(182, 133, 0));
-
-
-                &.selected {
-                    background-color: rgb(110, 80, 18);
-                }
-
-            }
-
-            &.light {
-
-                @include square(antiquewhite);
-
-                &.selected {
-                    background-color: rgb(190, 177, 158);
-                }
-            }
-
-            &.columnNumber {
-                display: block;
-                height: 20px;
-            }
-        }
-
-        p.rowNumber {
-            margin-right: 20px;
-            margin-bottom: 0;
-        }
+        align-items: center;
+        justify-content: end;
+        width: 100%;
     }
 
-    img.switchButton {
-        margin: 0;
-        padding: 0;
+    table.board {
+
+        tr.row {
+
+            display: flex;
+
+            td {
+                display: flex;
+                border-radius: 0%;
+                justify-content: center;
+                text-align: left;
+                align-items: center;
+                width: $squareSize;
+                height: $squareSize;
+
+
+
+                &.dark {
+
+                    @include square(rgb(182, 133, 0));
+
+
+                    &.selected {
+                        background-color: rgb(110, 80, 18);
+                    }
+
+                }
+
+                &.light {
+
+                    @include square(antiquewhite);
+
+                    &.selected {
+                        background-color: rgb(190, 177, 158);
+                    }
+                }
+
+                &.columnNumber {
+                    display: block;
+                    height: 20px;
+                }
+            }
+
+            p.rowNumber {
+                margin-right: 20px;
+                margin-bottom: 0;
+            }
+        }
+
+        img.switchButton {
+            margin: 0;
+            padding: 0;
+        }
     }
 }

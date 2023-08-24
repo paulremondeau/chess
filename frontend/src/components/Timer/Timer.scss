@@ -1,0 +1,25 @@
+.box {
+    display: flex;
+    justify-content: center;
+    text-align: center;
+    padding-left: 10px;
+    padding-right: 10px;
+    border: 1px solid black;
+
+    &.playing {
+        background-color: #56b33a;
+    }
+
+    &.waiting {
+        background-color: #a09d9d;
+    }
+
+    .time {
+        display: flex;
+        justify-content: space-evenly;
+        text-align: center;
+        width: 100%;
+        height: 100%;
+        font: small-caps bold 24px/1 sans-serif;
+    }
+}
