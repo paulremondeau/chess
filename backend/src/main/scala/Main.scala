@@ -118,8 +118,16 @@ object Main extends IOApp {
         )
 
       case req @ GET -> Root / "lost" =>
-        game.setWinner(req.params.apply("winner"))
-        Ok()
+        game.setWinner(req.params.apply("loser"))
+        Ok(
+          DataOutputFormat(
+            game.winner.toLowerCase(),
+            game.turn.toLowerCase(),
+            game.convertForFrontend(),
+            game.timesPlay,
+            System.currentTimeMillis()
+          )
+        )
 
     }
     .orNotFound

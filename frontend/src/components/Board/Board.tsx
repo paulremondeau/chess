@@ -10,7 +10,7 @@ import Timer from '../Timer/Timer'
 import { convertSquare } from '../../utils/convertSquare'
 
 // Import libraries
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect } from 'react'
 
 // @ts-ignore
 import useSound from 'use-sound';
@@ -65,7 +65,7 @@ function Board() {
     /// Game 
     const [winner, setWinner] = useState<string>("")
     const [turn, setTurn] = useState<string>("")
-    const timeLimit: number = 600000
+    const timeLimit: number = 1000
     const [gameClock, setGameClock] = useState<number>(0)
 
     /// Sounds
@@ -73,29 +73,45 @@ function Board() {
     const [playCapture] = useSound(captureSfx);
     const [playBeep] = useSound(beepSfx);
 
-    const foo = useRef<number>(0)
+
 
     /// Timers
-
     const [timesPlay, setTimesPlay] = useState<TimePlays>({ "w": [], "b": [] })
+    /**
+     * I a player clocks run to 0, this play loses the game
+     * @param color The losing player
+     */
+    function lostOnTime(color: string) {
+        axios({
+            method: 'get',
+            url: backendUrl + 'lost',
+            params: { "loser": color },
+            headers: headerConfig.headers
+
+        }).then((res) => {
+            updateBoardData(res)
+        })
+    }
 
     const whiteTimer = (turn != "" ? <Timer timeLimit={timeLimit}
         turn={turn == "w" ? true : false}
         lastPlayTimes={timesPlay}
         color={"w"}
         opponent={"b"}
+        winner={winner}
         gameClock={gameClock}
-        onInteraction={selectPromotion}
-        foo={foo} /> : null)
+        lostOnTime={lostOnTime}
+    /> : null)
 
     const blackTimer = (turn != "" ? <Timer timeLimit={timeLimit}
         turn={turn == "b" ? true : false}
         lastPlayTimes={timesPlay}
         color={"b"}
         opponent={"w"}
+        winner={winner}
         gameClock={gameClock}
-        onInteraction={selectPromotion}
-        foo={foo} /> : null)
+        lostOnTime={lostOnTime}
+    /> : null)
 
     /**
      * When the board is updated, update the square for the 
@@ -154,7 +170,6 @@ function Board() {
      * @param res The axios response from the backend.
      */
     function updateBoardData(res: AxiosResponse) {
-        console.log(res)
         setBoard(res.data.board)
         setTurn(res.data.turn)
         setWinner(res.data.winner)
@@ -173,11 +188,7 @@ function Board() {
                 .get(backendUrl + 'board', headerConfig)
                 .then((res) => {
                     updateBoardData(res)
-                }).then(
-                    () => {
-                        foo.current = 1
-                    }
-                )
+                })
         }, MINUTE_MS);
 
         return () => clearInterval(interval); // This represents the unmount function, in which you need to clear your interval to prevent memory leaks.
@@ -193,9 +204,7 @@ function Board() {
                 console.log(res)
                 updateBoardData(res)
                 playBeep()
-            }).then(
-                () => { foo.current = 0 }
-            )
+            })
     }
 
 
@@ -238,7 +247,10 @@ function Board() {
                 const classList: DOMTokenList = childDiv.classList
 
                 if (classList.contains('move')) {
-                    movePiece(componentId)
+                    if (winner == "") {
+                        movePiece(componentId)
+
+                    }
                 } else {
                     selectSelectedPiece(componentId)
                 }

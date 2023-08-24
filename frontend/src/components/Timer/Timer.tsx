@@ -3,7 +3,7 @@ import './Timer.scss'
 
 import { useRef, useEffect } from 'react'
 
-import { Duration, DateTime } from "luxon";
+import { Duration } from "luxon";
 
 interface TimePlays {
     [key: string]: number[];
@@ -14,21 +14,26 @@ function Timer({ timeLimit,
     lastPlayTimes,
     color,
     opponent,
+    winner,
     gameClock,
-    onInteraction, // for losing on time
-    foo }:
+    lostOnTime, // for losing on time
+}:
     {
         timeLimit: number,
         turn: boolean,
         lastPlayTimes: TimePlays,
         color: string,
         opponent: string,
+        winner: string,
         gameClock: number,
-        onInteraction: any,
-        foo: React.MutableRefObject<number>
+        lostOnTime: any,
+
     }) {
 
     const timer = useRef<number>(timeLimit)
+    if (timer.current == 0) {
+        lostOnTime(color)
+    }
 
     function timePlayTurn(plays: number[], playsOpponent: number[]): number {
 
@@ -60,36 +65,19 @@ function Timer({ timeLimit,
 
 
     useEffect(() => {
-        if (turn) {
-            timer.current = (lastPlayTimes[color].length > 0 ? timeLimit - timePlayTurn(lastPlayTimes[color], lastPlayTimes[opponent]) : timeLimit)
-        } else {
-            timer.current = (lastPlayTimes[color].length > 1 ? timeLimit - timePlayNotTurn(lastPlayTimes[color], lastPlayTimes[opponent]) : timeLimit)
+        if (winner == "") {
+            if (turn) {
+                timer.current = Math.max(0, (lastPlayTimes[color].length > 0 ? timeLimit - timePlayTurn(lastPlayTimes[color], lastPlayTimes[opponent]) : timeLimit))
+            } else {
+                timer.current = Math.max((lastPlayTimes[color].length > 1 ? timeLimit - timePlayNotTurn(lastPlayTimes[color], lastPlayTimes[opponent]) : timeLimit))
+            }
         }
+
     }, [gameClock])
 
 
-    // useEffect(() => {
-
-    //     const interval = setInterval(() => {
-    //         if (turn && lastPlayTimes[color].length > 0) {
-    //             timer.current = Math.max(0, timer.current - 1000)
-    //         }
-    //     }, 1000);
-    //     return () => clearInterval(interval);
-    // }, [turn]);
-
-
-
-    const logMe = () => {
-        // console.log(DateTime.now().toUTC().toMillis())
-        console.log(lastPlayTimes)
-        console.log(gameClock)
-
-    }
-
     return (
         <>
-            <button onClick={logMe}>{color} Timer</button>
             <div className={'box ' + (turn ? 'playing' : 'waiting')}>
                 <div className={'time'}>
                     {[...Duration.fromMillis(timer.current).toFormat("mm:ss")].map(c => {
