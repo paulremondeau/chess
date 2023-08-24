@@ -10,7 +10,7 @@ function App() {
     <>
       <div className='body'>
         <div className='header'>
-          PH
+          Scala Chess
         </div>
         <div className='board'>
           <Board />

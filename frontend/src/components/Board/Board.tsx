@@ -18,8 +18,14 @@ import moveSfx from '../../assets/move-self.mp3';
 import captureSfx from '../../assets/capture.mp3';
 import beepSfx from '../../assets/lichess-beep.mp3';
 import axios, { AxiosResponse } from 'axios'
+const headerConfig = {
+    headers: {
+        'Cache-Control': 'no-cache, no-store, must-revalidate',
+        'Pragma': 'no-cache',
+        'Expires': 0
+    }
+};
 
-import { DateTime } from "luxon";
 
 // Trivia
 
@@ -159,7 +165,7 @@ function Board() {
     useEffect(() => {
         const interval = setInterval(() => {
             axios
-                .get(backendUrl + 'board')
+                .get(backendUrl + 'board', headerConfig)
                 .then((res) => {
                     updateBoardData(res)
                 }).then(
@@ -177,7 +183,7 @@ function Board() {
      */
     const initializeBoard = () => {
         axios
-            .get(backendUrl + 'initialize')
+            .get(backendUrl + 'initialize', headerConfig)
             .then((res) => {
                 console.log(res)
                 updateBoardData(res)
@@ -186,7 +192,6 @@ function Board() {
                 () => { foo.current = 0 }
             )
     }
-
 
 
 
@@ -201,8 +206,10 @@ function Board() {
             method: 'get',
             url: backendUrl + 'play',
             params: { "selectedSquare": selectedPiece, "targetSquare": targetSquare, "promotion": promotionPiece },
+            headers: headerConfig.headers
 
         }).then((res) => {
+
             updateBoardData(res)
         })
     }
@@ -221,6 +228,8 @@ function Board() {
 
             document.getElementById('modal')!.style.visibility = 'hidden'
             if (target.classList.contains('dark') || target.classList.contains('light')) {
+                console.log("foo")
+                console.log(selectedPiece)
 
                 const childDiv: Element = target.children[0]
                 const classList: DOMTokenList = childDiv.classList
@@ -429,9 +438,10 @@ function Board() {
                     </div >
                     <div className='timer'>{sideView ? blackTimer : whiteTimer}</div>
                     <img onClick={() => selectSideView(!sideView)} src={SwitchButton} className='switchButton' width='30px' />
-                    <button onClick={initializeBoard}> Reset Board </button>
+                    <button onClick={initializeBoard} className='resetButton'> Reset Board </button>
                 </div>
             </div>
+
 
 
         </>

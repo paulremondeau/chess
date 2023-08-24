@@ -1,4 +1,4 @@
-$squareSize: 55px;
+$squareSize: 65px;
 
 @mixin square($background-color) {
 
@@ -80,7 +80,7 @@ $squareSize: 55px;
 
     .container {
         display: inline;
-        margin-top: 30px;
+        margin: auto;
 
         .timer {
             display: flex;
@@ -138,10 +138,21 @@ $squareSize: 55px;
                 }
             }
 
-            img.switchButton {
-                margin: 0;
-                padding: 0;
-            }
+
+        }
+
+        img.switchButton {
+            margin: 0;
+            padding: 0;
+            background-color: #fff;
+            border-radius: 20px;
+        }
+
+        button.resetButton {
+            position: fixed;
+            right: 0px;
+            bottom: 0px;
+            background-color: transparent;
         }
     }
 

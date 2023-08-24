@@ -14,7 +14,7 @@ function Timer({ timeLimit,
     lastPlayTimes,
     color,
     opponent,
-    onInteraction,
+    onInteraction, // for losing on time
     foo }:
     {
         timeLimit: number,
@@ -88,7 +88,7 @@ function Timer({ timeLimit,
 
     return (
         <>
-            <button onClick={logMe}>LogMe</button>
+            <button onClick={logMe}>{color} Timer</button>
             <div className={'box ' + (turn ? 'playing' : 'waiting')}>
                 <div className={'time'}>
                     {[...Duration.fromMillis(timer.current).toFormat("mm:ss")].map(c => {
