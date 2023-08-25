@@ -4,6 +4,7 @@ import './Board.scss'
 // Import components
 import Piece from '../Piece/Piece'
 import Promotion from '../Promotion/Promotion'
+import Timer from '../Timer/Timer'
 
 // Import utils
 import { convertSquare } from '../../utils/convertSquare'
@@ -17,6 +18,14 @@ import moveSfx from '../../assets/move-self.mp3';
 import captureSfx from '../../assets/capture.mp3';
 import beepSfx from '../../assets/lichess-beep.mp3';
 import axios, { AxiosResponse } from 'axios'
+const headerConfig = {
+    headers: {
+        'Cache-Control': 'no-cache, no-store, must-revalidate',
+        'Pragma': 'no-cache',
+        'Expires': 0
+    }
+};
+
 
 // Trivia
 
@@ -25,6 +34,10 @@ import backendUrl from '../../../config'
 
 interface Square {
     [key: string]: { 'pieceType': string, 'pieceColor': string, 'availableMovements': string[], 'isChecked': boolean };
+}
+
+interface TimePlays {
+    [key: string]: number[];
 }
 
 function Board() {
@@ -52,11 +65,53 @@ function Board() {
     /// Game 
     const [winner, setWinner] = useState<string>("")
     const [turn, setTurn] = useState<string>("")
+    const timeLimit: number = 600000
+    const [gameClock, setGameClock] = useState<number>(0)
 
     /// Sounds
     const [playMove] = useSound(moveSfx);
     const [playCapture] = useSound(captureSfx);
     const [playBeep] = useSound(beepSfx);
+
+
+
+    /// Timers
+    const [timesPlay, setTimesPlay] = useState<TimePlays>({ "w": [], "b": [] })
+    /**
+     * If a player clocks run to 0, this play loses the game
+     * @param color The losing player
+     */
+    function lostOnTime(color: string) {
+        axios({
+            method: 'get',
+            url: backendUrl + 'lost',
+            params: { "loser": color },
+            headers: headerConfig.headers
+
+        }).then((res) => {
+            updateBoardData(res)
+        })
+    }
+
+    const whiteTimer = (turn != "" ? <Timer timeLimit={timeLimit}
+        turn={turn == "w" ? true : false}
+        lastPlayTimes={timesPlay}
+        color={"w"}
+        opponent={"b"}
+        winner={winner}
+        gameClock={gameClock}
+        lostOnTime={lostOnTime}
+    /> : null)
+
+    const blackTimer = (turn != "" ? <Timer timeLimit={timeLimit}
+        turn={turn == "b" ? true : false}
+        lastPlayTimes={timesPlay}
+        color={"b"}
+        opponent={"w"}
+        winner={winner}
+        gameClock={gameClock}
+        lostOnTime={lostOnTime}
+    /> : null)
 
     /**
      * When the board is updated, update the square for the 
@@ -109,6 +164,7 @@ function Board() {
 
     }, [selectedPiece])
 
+
     /**
      * Update board information with axios backend response.
      * @param res The axios response from the backend.
@@ -117,16 +173,19 @@ function Board() {
         setBoard(res.data.board)
         setTurn(res.data.turn)
         setWinner(res.data.winner)
+        setTimesPlay(res.data.timesPlay)
+        setGameClock(res.data.gameClock)
+
     }
 
-    const MINUTE_MS = 500;
+    const MINUTE_MS = 300;
     /**
      * Fetch backend every 0.5 seconds to see board update.
      */
     useEffect(() => {
         const interval = setInterval(() => {
             axios
-                .get(backendUrl + 'board')
+                .get(backendUrl + 'board', headerConfig)
                 .then((res) => {
                     updateBoardData(res)
                 })
@@ -140,13 +199,13 @@ function Board() {
      */
     const initializeBoard = () => {
         axios
-            .get(backendUrl + 'initialize')
+            .get(backendUrl + 'initialize', headerConfig)
             .then((res) => {
+                console.log(res)
                 updateBoardData(res)
                 playBeep()
             })
     }
-
 
 
 
@@ -161,23 +220,27 @@ function Board() {
             method: 'get',
             url: backendUrl + 'play',
             params: { "selectedSquare": selectedPiece, "targetSquare": targetSquare, "promotion": promotionPiece },
+            headers: headerConfig.headers
 
         }).then((res) => {
+
             updateBoardData(res)
         })
     }
 
-    /** Click event handler.
+    /** Event handling function
+     * 
+     * It handles click and drop event for piece movements.
      *
-     * @param e 
+     * @param e The React mouse event.
      */
-    const handleClick = async (e: React.MouseEvent) => {
+    const handleEvent = async (e: React.MouseEvent) => {
 
         const eventType = e.type
         const target = e.currentTarget
         const componentId = e.currentTarget.id
 
-        if (eventType == 'click') {
+        if (['click', 'drop'].includes(eventType)) {
 
             document.getElementById('modal')!.style.visibility = 'hidden'
             if (target.classList.contains('dark') || target.classList.contains('light')) {
@@ -186,9 +249,19 @@ function Board() {
                 const classList: DOMTokenList = childDiv.classList
 
                 if (classList.contains('move')) {
-                    movePiece(componentId)
+                    if (winner == "") {
+                        movePiece(componentId)
+
+                    }
                 } else {
                     selectSelectedPiece(componentId)
+                }
+            } else {
+                const target = e.target as Element
+                if (target.classList.contains('move')) {
+                    if (winner == "") {
+                        movePiece(e.currentTarget.id)
+                    }
                 }
             }
         }
@@ -316,77 +389,68 @@ function Board() {
                     <Promotion color={colorPromotion} onInteraction={selectPromotion} />
                 </div>
             </div>
-            <table className='board'>
-
-                <tbody>
-                    {rowOrder.map((rowNumber) => {
-                        return (
-
-                            <tr className='row' key={rowNumber} id={rowNumber.toString()} >
-                                <p className='rowNumber'>{rowNumber}</p>
-                                {
-                                    columnOrder.map((columnNumber) => {
-                                        let selectedSquare: string = convertSquare(rowNumber, columnNumber);
-
-                                        return (
-                                            <td key={selectedSquare} id={convertSquare(rowNumber, columnNumber)}
-                                                className={(rowNumber + columnNumber) % 2 == 0 ? 'dark' : 'light'}
-                                                onDrop={(e) => {
-
-                                                    if (e.currentTarget.classList.contains('dark') || e.currentTarget.classList.contains('light')) {
-
-                                                        const child = e.currentTarget.children[0]
-                                                        if (child.classList.contains('move')) {
-                                                            movePiece(e.currentTarget.id)
-                                                        }
-
-                                                    } else {
-                                                        const target = e.target as Element
-                                                        if (target.classList.contains('move')) {
-                                                            movePiece(e.currentTarget.id)
-                                                        }
-                                                    }
-                                                }}
-                                                onDragOver={event => event.preventDefault()}
-                                                onClick={(e) => handleClick(e)}
-
-                                            >
-
-                                                {Object.keys(board).indexOf(selectedSquare) > -1
-                                                    ? <div className='piece'
-                                                        draggable="true"
-                                                        onDragStart={() => selectSelectedPiece(selectedSquare)}
-
-                                                        onDragEnd={() => {
-
-                                                            selectSelectedPiece('')
-                                                        }}>
-
-                                                        <Piece name={board[selectedSquare].pieceType} color={board[selectedSquare].pieceColor} /></div>
-
-                                                    : <div className='empty'></div>}
-
-                                            </td>)
-                                    })
-                                }
-
-                            </tr>
-                        )
-                    }
-                    )}
-                    <tr className='row'>
-                        {[''].concat(columnOrder.map(p => convertSquare(0, p)).map(p => p[0])).map((columnNumber) => {
+            <div className='mainBoard'>
+                <div className='container'>
+                    <div className='timer'>
+                        {sideView ? whiteTimer : blackTimer}
+                    </div>
+                    <div className='board_table'>
+                        {rowOrder.map((rowNumber) => {
                             return (
-                                <td className='columnNumber'>
-                                    {columnNumber}
-                                </td>)
-                        })}
 
-                    </tr>
-                </tbody>
-            </table >
-            <img onClick={() => selectSideView(!sideView)} src={SwitchButton} className='switchButton' width='30px' />
-            <button onClick={initializeBoard}> Reset Board </button>
+                                <div className='board_row' key={rowNumber} id={rowNumber.toString()} >
+                                    <p className='rowNumber'>{rowNumber}</p>
+                                    {
+                                        columnOrder.map((columnNumber) => {
+                                            let selectedSquare: string = convertSquare(rowNumber, columnNumber);
+
+                                            return (
+                                                <div key={selectedSquare} id={convertSquare(rowNumber, columnNumber)}
+                                                    className={'board_data ' + ((rowNumber + columnNumber) % 2 == 0 ? 'dark' : 'light')}
+                                                    onDrop={(e) => handleEvent(e)}
+                                                    onDragOver={event => event.preventDefault()}
+                                                    onClick={(e) => handleEvent(e)}
+
+                                                >
+
+                                                    {Object.keys(board).indexOf(selectedSquare) > -1
+                                                        ? <div className='piece'
+                                                            draggable="true"
+                                                            onDragStart={() => selectSelectedPiece(selectedSquare)}
+                                                            onDragEnd={() => {
+                                                                selectSelectedPiece('')
+                                                            }}>
+
+                                                            <Piece name={board[selectedSquare].pieceType} color={board[selectedSquare].pieceColor} /></div>
+
+                                                        : <div className='empty'></div>}
+
+                                                </div>)
+                                        })
+                                    }
+
+                                </div>
+                            )
+                        }
+                        )}
+                        <div className='board_row'>
+                            {[''].concat(columnOrder.map(p => convertSquare(0, p)).map(p => p[0])).map((columnNumber) => {
+                                return (
+                                    <div className='board_data columnNumber' key={columnNumber} id={columnNumber.toString()}>
+                                        {columnNumber}
+                                    </div>)
+                            })}
+
+                        </div>
+                    </div >
+                    <div className='timer'>{sideView ? blackTimer : whiteTimer}</div>
+                    <img onClick={() => selectSideView(!sideView)} src={SwitchButton} className='switchButton' width='30px' />
+                    <button onClick={initializeBoard} className='resetButton'> Reset Board </button>
+                </div>
+            </div>
+
+
+
         </>
     )
 }

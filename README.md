@@ -22,3 +22,13 @@ $ npm run build
 ```bash
 $ npm run preview
 ```
+
+# TODO
+- [ ] Test for react
+- [ ] API security with Google Cloud
+- [ ] Data base for multiple games
+- [x] Timers
+- [ ] Draws
+- [ ] Moves list
+- [ ] Move animation (CSS translation)
+- [ ] UI
