@@ -65,7 +65,7 @@ function Board() {
     /// Game 
     const [winner, setWinner] = useState<string>("")
     const [turn, setTurn] = useState<string>("")
-    const timeLimit: number = 1000
+    const timeLimit: number = 600000
     const [gameClock, setGameClock] = useState<number>(0)
 
     /// Sounds
@@ -78,7 +78,7 @@ function Board() {
     /// Timers
     const [timesPlay, setTimesPlay] = useState<TimePlays>({ "w": [], "b": [] })
     /**
-     * I a player clocks run to 0, this play loses the game
+     * If a player clocks run to 0, this play loses the game
      * @param color The losing player
      */
     function lostOnTime(color: string) {
@@ -228,17 +228,19 @@ function Board() {
         })
     }
 
-    /** Click event handler.
+    /** Event handling function
+     * 
+     * It handles click and drop event for piece movements.
      *
-     * @param e 
+     * @param e The React mouse event.
      */
-    const handleClick = async (e: React.MouseEvent) => {
+    const handleEvent = async (e: React.MouseEvent) => {
 
         const eventType = e.type
         const target = e.currentTarget
         const componentId = e.currentTarget.id
 
-        if (eventType == 'click') {
+        if (['click', 'drop'].includes(eventType)) {
 
             document.getElementById('modal')!.style.visibility = 'hidden'
             if (target.classList.contains('dark') || target.classList.contains('light')) {
@@ -253,6 +255,13 @@ function Board() {
                     }
                 } else {
                     selectSelectedPiece(componentId)
+                }
+            } else {
+                const target = e.target as Element
+                if (target.classList.contains('move')) {
+                    if (winner == "") {
+                        movePiece(e.currentTarget.id)
+                    }
                 }
             }
         }
@@ -398,24 +407,9 @@ function Board() {
                                             return (
                                                 <div key={selectedSquare} id={convertSquare(rowNumber, columnNumber)}
                                                     className={'board_data ' + ((rowNumber + columnNumber) % 2 == 0 ? 'dark' : 'light')}
-                                                    onDrop={(e) => {
-
-                                                        if (e.currentTarget.classList.contains('dark') || e.currentTarget.classList.contains('light')) {
-
-                                                            const child = e.currentTarget.children[0]
-                                                            if (child.classList.contains('move')) {
-                                                                movePiece(e.currentTarget.id)
-                                                            }
-
-                                                        } else {
-                                                            const target = e.target as Element
-                                                            if (target.classList.contains('move')) {
-                                                                movePiece(e.currentTarget.id)
-                                                            }
-                                                        }
-                                                    }}
+                                                    onDrop={(e) => handleEvent(e)}
                                                     onDragOver={event => event.preventDefault()}
-                                                    onClick={(e) => handleClick(e)}
+                                                    onClick={(e) => handleEvent(e)}
 
                                                 >
 
@@ -423,9 +417,7 @@ function Board() {
                                                         ? <div className='piece'
                                                             draggable="true"
                                                             onDragStart={() => selectSelectedPiece(selectedSquare)}
-
                                                             onDragEnd={() => {
-
                                                                 selectSelectedPiece('')
                                                             }}>
 
