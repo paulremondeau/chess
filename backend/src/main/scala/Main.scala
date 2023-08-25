@@ -1,4 +1,5 @@
 import scala.io.StdIn.readLine
+import java.time.LocalDateTime
 
 import cats.effect._
 
@@ -55,10 +56,15 @@ case class PieceInformation(
 case class DataOutputFormat(
     winner: String,
     turn: String,
-    board: Map[String, PieceInformation]
+    board: Map[String, PieceInformation],
+    timesPlay: scala.collection.mutable.Map[String, Array[Long]],
+    gameClock: Long
 )
 
 object Main extends IOApp {
+
+  var blackLastPlay: Long = -1
+  var whiteLastPlay: Long = -1
 
   val game: GameAPI = GameAPI()
 
@@ -78,19 +84,25 @@ object Main extends IOApp {
           DataOutputFormat(
             game.winner.toLowerCase(),
             game.turn.toLowerCase(),
-            board
+            board,
+            game.timesPlay,
+            System.currentTimeMillis()
           )
         )
 
       case req @ GET -> Root / "initialize" =>
         game.initialize()
+        blackLastPlay = -1
+        whiteLastPlay = -1
 
         println(game.board)
         Ok(
           DataOutputFormat(
             game.winner.toLowerCase(),
             game.turn.toLowerCase(),
-            game.convertForFrontend()
+            game.convertForFrontend(),
+            game.timesPlay,
+            System.currentTimeMillis()
           )
         )
 
@@ -99,7 +111,21 @@ object Main extends IOApp {
           DataOutputFormat(
             game.winner.toLowerCase(),
             game.turn.toLowerCase(),
-            game.convertForFrontend()
+            game.convertForFrontend(),
+            game.timesPlay,
+            System.currentTimeMillis()
+          )
+        )
+
+      case req @ GET -> Root / "lost" =>
+        game.setWinner(req.params.apply("loser"))
+        Ok(
+          DataOutputFormat(
+            game.winner.toLowerCase(),
+            game.turn.toLowerCase(),
+            game.convertForFrontend(),
+            game.timesPlay,
+            System.currentTimeMillis()
           )
         )
 

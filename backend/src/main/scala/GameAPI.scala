@@ -24,6 +24,8 @@ class GameAPI:
     *   The winner.
     */
   def winner: String = _winner
+  def setWinner(newWinner: String): Unit =
+    _winner = newWinner
 
   /** Which player it is to play
     */
@@ -51,11 +53,18 @@ class GameAPI:
   def board: Board = _board
   _board.initialize()
 
+  private var _timesPlay: scala.collection.mutable.Map[String, Array[Long]] =
+    scala.collection.mutable.Map("w" -> Array[Long](), "b" -> Array[Long]())
+
+  def timesPlay: scala.collection.mutable.Map[String, Array[Long]] = _timesPlay
+
   def initialize(): Unit =
     _board.initialize()
     _turn = "W"
     nextTurn = "B"
     _winner = ""
+    _timesPlay =
+      scala.collection.mutable.Map("w" -> Array[Long](), "b" -> Array[Long]())
 
   /** A list of all the pieces of the given color.
     */
@@ -156,44 +165,6 @@ class GameAPI:
               else false
           )
       )).toMap
-
-    // (friendlyPieces
-    //   .map(x =>
-    //     x.position.toString() ->
-    //       Map[String, String | List[String]](
-    //         "name" -> x.getClass().toString(),
-    //         "color" -> x.color.toLowerCase(),
-    //         "movements" -> x
-    //           .availableMovements(friendlyPieces, enemiesPieces)
-    //           .filter(y =>
-    //             x.isValidMovement(
-    //               y,
-    //               friendlyPieces,
-    //               enemiesPieces,
-    //               friendlyKing
-    //             )
-    //           )
-    //           .map(_.toString())
-    //       )
-    //   ) ++ enemiesPieces
-    //   .map(x =>
-    //     x.position.toString() ->
-    //       Map[String, String | List[String]](
-    //         "name" -> x.getClass().toString(),
-    //         "color" -> x.color.toLowerCase(),
-    //         "movements" -> x
-    //           .availableMovements(enemiesPieces, friendlyPieces)
-    //           .filter(y =>
-    //             x.isValidMovement(
-    //               y,
-    //               enemiesPieces,
-    //               friendlyPieces,
-    //               enemyKing
-    //             )
-    //           )
-    //           .map(_.toString())
-    //       )
-    //   )).toMap
 
   /** Play a turn of chess.
     *
@@ -343,6 +314,14 @@ class GameAPI:
         ) // King is checked
       then _winner = nextTurn // Checkmate
       else _winner = "_" // Stalemate
+
+    if (turn == "W") then {
+      _timesPlay("b") =
+        _timesPlay("b") ++ Array[Long](System.currentTimeMillis())
+    } else {
+      _timesPlay("w") =
+        _timesPlay("w") ++ Array[Long](System.currentTimeMillis())
+    }
 
     convertForFrontend()
 
