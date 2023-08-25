@@ -27,7 +27,7 @@ $ npm run preview
 - [ ] Test for react
 - [ ] API security with Google Cloud
 - [ ] Data base for multiple games
-- [ ] Times
+- [x] Timers
 - [ ] Draws
 - [ ] Moves list
 - [ ] Move animation (CSS translation)
