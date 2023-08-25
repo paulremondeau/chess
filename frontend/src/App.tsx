@@ -1,6 +1,7 @@
 import './App.scss'
 
 import Board from './components/Board/Board'
+import Header from './components/Header/Header'
 
 
 function App() {
@@ -10,7 +11,7 @@ function App() {
     <>
       <div className='body'>
         <div className='header'>
-          Scala Chess
+          <Header />
         </div>
         <div className='board'>
           <Board />
