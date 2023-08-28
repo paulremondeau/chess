@@ -40,7 +40,12 @@ interface TimePlays {
     [key: string]: number[];
 }
 
+
 function Board() {
+
+    const logMe = () => {
+        console.log(board)
+    }
 
     /**
      * The promotion type piece required
@@ -55,6 +60,8 @@ function Board() {
     const [rowOrder, selectRowOrder] = useState<number[]>([8, 7, 6, 5, 4, 3, 2, 1])
     const [columnOrder, selectcolumnOrder] = useState<number[]>([1, 2, 3, 4, 5, 6, 7, 8])
 
+    var nPieces: number = Object.keys(board).length
+
     /// Move
     const [selectedPiece, selectSelectedPiece] = useState<string>('')
 
@@ -67,6 +74,9 @@ function Board() {
     const [turn, setTurn] = useState<string>("")
     const timeLimit: number = 600000
     const [gameClock, setGameClock] = useState<number>(0)
+
+    var controller: AbortController = new AbortController()
+    var allowUpdate: boolean = true
 
     /// Sounds
     const [playMove] = useSound(moveSfx);
@@ -165,11 +175,56 @@ function Board() {
     }, [selectedPiece])
 
 
+    useEffect(() => {
+        console.log("foo")
+    }, [turn])
+
+    function compareBoard(obj1: Square, obj2: Square): boolean {
+
+        if ((Object.keys(obj1).length) != (Object.keys(obj2).length)) {
+            return false
+        } {
+            for (const [index, square] of Object.entries(obj1)) {
+
+                if (obj2[index] == undefined) {
+                    return false
+                }
+                if (square.pieceColor != obj2[index].pieceColor ||
+                    square.pieceType != obj2[index].pieceType ||
+                    square.isChecked != obj2[index].isChecked) {
+                    return false
+                }
+
+            }
+            return true
+        }
+
+    }
+
+
     /**
      * Update board information with axios backend response.
      * @param res The axios response from the backend.
      */
     function updateBoardData(res: AxiosResponse) {
+
+        // setBoard((prevBoard) => {
+
+        //     if (compareBoard(prevBoard, res.data.board)) {
+        //         // Board is still the same
+        //         return { ...prevBoard }
+
+        //     } else {
+        //         if (Object.keys(prevBoard).length < nPieces) {
+        //             nPieces = Object.keys(prevBoard).length
+        //             playCapture()
+        //         } else {
+        //             playMove()
+        //         }
+        //         return { ...res.data.board }
+        //     }
+        // })
+        // TODO : make previous work for sounds
         setBoard(res.data.board)
         setTurn(res.data.turn)
         setWinner(res.data.winner)
@@ -180,18 +235,25 @@ function Board() {
 
     const MINUTE_MS = 300;
     /**
-     * Fetch backend every 0.5 seconds to see board update.
+     * Fetch backend every 0.3 seconds to see board update.
      */
     useEffect(() => {
-        const interval = setInterval(() => {
-            axios
-                .get(backendUrl + 'board', headerConfig)
-                .then((res) => {
+
+        if (allowUpdate) {
+            controller = new AbortController();
+            const interval = setInterval(() => {
+                axios({
+                    method: 'get',
+                    url: backendUrl + 'board',
+                    headers: headerConfig.headers,
+                    signal: controller.signal
+                }).then((res) => {
                     updateBoardData(res)
                 })
-        }, MINUTE_MS);
+            }, MINUTE_MS);
 
-        return () => clearInterval(interval); // This represents the unmount function, in which you need to clear your interval to prevent memory leaks.
+            return () => clearInterval(interval); // This represents the unmount function, in which you need to clear your interval to prevent memory leaks.
+        }
     }, [])
 
     /**
@@ -324,28 +386,31 @@ function Board() {
      */
     function movePiece(targetSquare: string) {
 
+        allowUpdate = false
+        controller.abort() // Abort previous update
 
-        if (board[selectedPiece].pieceColor == turn) {
+        new Promise((resolve, _) => {
+            if (board[selectedPiece].pieceColor == turn) {
 
-            if (board[selectedPiece].pieceType == "Pawn" && ((board[selectedPiece].pieceColor == "w" && targetSquare[1] == "8") // Promotion
-                || (board[selectedPiece].pieceColor == "b" && targetSquare[1] == "1"))) {
-                doPromotion()
-                selectTargetSquarePromotion(targetSquare)
+                if (board[selectedPiece].pieceType == "Pawn" && ((board[selectedPiece].pieceColor == "w" && targetSquare[1] == "8") // Promotion
+                    || (board[selectedPiece].pieceColor == "b" && targetSquare[1] == "1"))) {
+                    doPromotion()
+                    selectTargetSquarePromotion(targetSquare)
 
-            } else {
-                Object.keys(board).indexOf(targetSquare) > -1 ? playCapture() : playMove()
-                board[targetSquare] = board[selectedPiece]
-                delete board[selectedPiece]
-                setBoard({
-                    ...board,
+                } else {
+                    Object.keys(board).indexOf(targetSquare) > -1 ? playCapture() : playMove()
+                    board[targetSquare] = board[selectedPiece]
+                    delete board[selectedPiece]
+                    setBoard({
+                        ...board,
 
-                });
-                movePieceBackend(selectedPiece, targetSquare)
-                selectSelectedPiece('')
+                    });
+                    movePieceBackend(selectedPiece, targetSquare)
+                    selectSelectedPiece('')
+                }
             }
-
-
-        }
+            resolve(0)
+        }).then(() => { allowUpdate = true })
     }
 
     /**
@@ -382,7 +447,7 @@ function Board() {
 
     return (
         <>
-
+            <button onClick={logMe}>LogMe</button>
             <div className="modal" id="modal">
                 <div className="modal-back"></div>
                 <div className="modal-container">
