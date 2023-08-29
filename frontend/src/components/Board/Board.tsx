@@ -83,8 +83,6 @@ function Board() {
     const [playCapture] = useSound(captureSfx);
     const [playBeep] = useSound(beepSfx);
 
-
-
     /// Timers
     const [timesPlay, setTimesPlay] = useState<TimePlays>({ "w": [], "b": [] })
     /**
@@ -152,17 +150,17 @@ function Board() {
      * When a winner is declared, play the sound
      */
     useEffect(() => {
-        playBeep()
+        if (winner != "") {
+            playBeep()
+        }
     }, [winner])
 
     /**
-     * Change the side view accordingly
+     * Change the side view accordingly 
      */
     useEffect(() => {
-
         selectRowOrder([...rowOrder.reverse()])
         selectcolumnOrder([...columnOrder.reverse()])
-
     }, [sideView])
 
 
@@ -171,14 +169,15 @@ function Board() {
      */
     useEffect(() => {
         showMovements(selectedPiece);
-
     }, [selectedPiece])
 
 
-    useEffect(() => {
-        console.log("foo")
-    }, [turn])
-
+    /**
+     * Compare old and new board 
+     * @param obj1 Old board
+     * @param obj2 NEw board
+     * @returns {boolean} true if the boards are the same
+     */
     function compareBoard(obj1: Square, obj2: Square): boolean {
 
         if ((Object.keys(obj1).length) != (Object.keys(obj2).length)) {
@@ -193,12 +192,18 @@ function Board() {
                     square.pieceType != obj2[index].pieceType ||
                     square.isChecked != obj2[index].isChecked) {
                     return false
+                } else {
+                    for (const squareValue of square.availableMovements) {
+
+                        if (!obj2[index].availableMovements.includes(squareValue)) {
+                            return false
+                        }
+                    }
                 }
 
             }
             return true
         }
-
     }
 
 
@@ -208,24 +213,23 @@ function Board() {
      */
     function updateBoardData(res: AxiosResponse) {
 
-        // setBoard((prevBoard) => {
+        setBoard((prevBoard) => {
+            if (compareBoard(prevBoard, res.data.board)) {
+                // Board is still the same
+                return prevBoard
 
-        //     if (compareBoard(prevBoard, res.data.board)) {
-        //         // Board is still the same
-        //         return { ...prevBoard }
+            } else {
+                console.log(Object.keys(prevBoard).length < nPieces)
+                if (Object.keys(prevBoard).length < nPieces) {
+                    nPieces = Object.keys(prevBoard).length
+                    playCapture()
+                } else {
+                    playMove()
+                }
+                return res.data.board
+            }
+        })
 
-        //     } else {
-        //         if (Object.keys(prevBoard).length < nPieces) {
-        //             nPieces = Object.keys(prevBoard).length
-        //             playCapture()
-        //         } else {
-        //             playMove()
-        //         }
-        //         return { ...res.data.board }
-        //     }
-        // })
-        // TODO : make previous work for sounds
-        setBoard(res.data.board)
         setTurn(res.data.turn)
         setWinner(res.data.winner)
         setTimesPlay(res.data.timesPlay)
@@ -263,7 +267,6 @@ function Board() {
         axios
             .get(backendUrl + 'initialize', headerConfig)
             .then((res) => {
-                console.log(res)
                 updateBoardData(res)
                 playBeep()
             })
@@ -285,7 +288,7 @@ function Board() {
             headers: headerConfig.headers
 
         }).then((res) => {
-
+            console.log("movePieceBackend")
             updateBoardData(res)
         })
     }
@@ -398,19 +401,20 @@ function Board() {
                     selectTargetSquarePromotion(targetSquare)
 
                 } else {
-                    Object.keys(board).indexOf(targetSquare) > -1 ? playCapture() : playMove()
-                    board[targetSquare] = board[selectedPiece]
-                    delete board[selectedPiece]
-                    setBoard({
-                        ...board,
+                    // Object.keys(board).indexOf(targetSquare) > -1 ? playCapture() : playMove()
 
-                    });
+                    setBoard((prevState) => {
+                        var newState = JSON.parse(JSON.stringify(prevState))
+                        newState[targetSquare] = newState[selectedPiece]
+                        delete newState[selectedPiece]
+                        return newState
+                    })
                     movePieceBackend(selectedPiece, targetSquare)
                     selectSelectedPiece('')
                 }
             }
             resolve(0)
-        }).then(() => { allowUpdate = true })
+        }).then(() => allowUpdate = true)
     }
 
     /**
