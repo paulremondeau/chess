@@ -8,9 +8,10 @@ import Timer from '../Timer/Timer'
 
 // Import utils
 import { convertSquare } from '../../utils/convertSquare'
+import Semaphore from '../../utils/semaphore'
 
 // Import libraries
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 
 // @ts-ignore
 import useSound from 'use-sound';
@@ -26,9 +27,9 @@ const headerConfig = {
     }
 };
 
+const throttler = new Semaphore(1);
 
 // Trivia
-
 import SwitchButton from '../../assets/switch.png'
 import backendUrl from '../../../config'
 
@@ -40,11 +41,10 @@ interface TimePlays {
     [key: string]: number[];
 }
 
-
 function Board() {
 
-    const logMe = () => {
-        console.log(board)
+    function logMe() {
+        console.log(fetchBoard == fetchBoard)
     }
 
     /**
@@ -53,14 +53,17 @@ function Board() {
     var promotionPiece: string = "_"
 
     // States
-
     /// Visualisation
     const [board, setBoard] = useState<Square>({})
-    const [sideView, selectSideView] = useState<boolean>(false)
+    const [sideView, selectSideView] = useState<string>("w")
     const [rowOrder, selectRowOrder] = useState<number[]>([8, 7, 6, 5, 4, 3, 2, 1])
     const [columnOrder, selectcolumnOrder] = useState<number[]>([1, 2, 3, 4, 5, 6, 7, 8])
 
     var nPieces: number = Object.keys(board).length
+    /**
+     * Used to play the sounds
+     */
+    const boardChanged = useRef<boolean>(false)
 
     /// Move
     const [selectedPiece, selectSelectedPiece] = useState<string>('')
@@ -75,8 +78,8 @@ function Board() {
     const timeLimit: number = 600000
     const [gameClock, setGameClock] = useState<number>(0)
 
-    var controller: AbortController = new AbortController()
-    var allowUpdate: boolean = true
+
+
 
     /// Sounds
     const [playMove] = useSound(moveSfx);
@@ -102,7 +105,7 @@ function Board() {
     }
 
     const whiteTimer = (turn != "" ? <Timer timeLimit={timeLimit}
-        turn={turn == "w" ? true : false}
+        turn={turn == "w"}
         lastPlayTimes={timesPlay}
         color={"w"}
         opponent={"b"}
@@ -112,7 +115,7 @@ function Board() {
     /> : null)
 
     const blackTimer = (turn != "" ? <Timer timeLimit={timeLimit}
-        turn={turn == "b" ? true : false}
+        turn={turn == "b"}
         lastPlayTimes={timesPlay}
         color={"b"}
         opponent={"w"}
@@ -159,8 +162,15 @@ function Board() {
      * Change the side view accordingly 
      */
     useEffect(() => {
-        selectRowOrder([...rowOrder.reverse()])
-        selectcolumnOrder([...columnOrder.reverse()])
+        if (sideView == "w") {
+            selectRowOrder([8, 7, 6, 5, 4, 3, 2, 1])
+            selectcolumnOrder([1, 2, 3, 4, 5, 6, 7, 8])
+
+        } else {
+            selectRowOrder([1, 2, 3, 4, 5, 6, 7, 8])
+            selectcolumnOrder([8, 7, 6, 5, 4, 3, 2, 1])
+        }
+
     }, [sideView])
 
 
@@ -171,11 +181,10 @@ function Board() {
         showMovements(selectedPiece);
     }, [selectedPiece])
 
-
     /**
      * Compare old and new board 
      * @param obj1 Old board
-     * @param obj2 NEw board
+     * @param obj2 New board
      * @returns {boolean} true if the boards are the same
      */
     function compareBoard(obj1: Square, obj2: Square): boolean {
@@ -212,23 +221,36 @@ function Board() {
      * @param res The axios response from the backend.
      */
     function updateBoardData(res: AxiosResponse) {
+        console.log("UpdateBoardData")
+        new Promise((resolve, _) => {
+            setBoard((prevBoard) => {
+                if (compareBoard(prevBoard, res.data.board)) {
+                    // Board is still the same
+                    return { ...prevBoard }
 
-        setBoard((prevBoard) => {
-            if (compareBoard(prevBoard, res.data.board)) {
-                // Board is still the same
-                return prevBoard
+                } else {
+                    boardChanged.current = true
+                    return { ...res.data.board }
+                }
+            })
+            resolve(0)
+        }).then(() => {
+            // If board changed, play sound accordingly
 
-            } else {
-                console.log(Object.keys(prevBoard).length < nPieces)
-                if (Object.keys(prevBoard).length < nPieces) {
-                    nPieces = Object.keys(prevBoard).length
+            if (boardChanged.current) {
+
+                if (Object.keys(res.data.board).length < nPieces) {
+                    nPieces = Object.keys(res.data.board).length
+                    console.log("Should play capture")
                     playCapture()
                 } else {
+                    console.log("Should play move")
                     playMove()
                 }
-                return res.data.board
+                boardChanged.current = false
             }
         })
+
 
         setTurn(res.data.turn)
         setWinner(res.data.winner)
@@ -237,27 +259,36 @@ function Board() {
 
     }
 
+    /**
+     * Fetch the board
+     * @returns 
+     */
+    function fetchBoard(): Promise<unknown> {
+        return new Promise((resolve) => {
+            axios({
+                method: 'get',
+                url: backendUrl + 'board',
+                headers: headerConfig.headers,
+
+            }).then((res) => {
+                updateBoardData(res)
+            })
+            resolve(0)
+        })
+    }
+
     const MINUTE_MS = 300;
     /**
      * Fetch backend every 0.3 seconds to see board update.
      */
     useEffect(() => {
 
-        if (allowUpdate) {
-            controller = new AbortController();
-            const interval = setInterval(() => {
-                axios({
-                    method: 'get',
-                    url: backendUrl + 'board',
-                    headers: headerConfig.headers,
-                    signal: controller.signal
-                }).then((res) => {
-                    updateBoardData(res)
-                })
-            }, MINUTE_MS);
+        const interval = setInterval(() => {
 
-            return () => clearInterval(interval); // This represents the unmount function, in which you need to clear your interval to prevent memory leaks.
-        }
+            throttler.callFunction(fetchBoard, "", "")
+        }, MINUTE_MS);
+
+        return () => clearInterval(interval); // This represents the unmount function, in which you need to clear your interval to prevent memory leaks.
     }, [])
 
     /**
@@ -279,18 +310,21 @@ function Board() {
      * @param selectedPiece The square with the piece we want to move.
      * @param targetSquare The square we want to move the piece.
      */
-    const movePieceBackend = (selectedPiece: String, targetSquare: String) => {
+    const movePieceBackend = (selectedPiece: String, targetSquare: String): Promise<unknown> => {
+        return new Promise((resolve) => {
+            axios({
+                method: 'get',
+                url: backendUrl + 'play',
+                params: { "selectedSquare": selectedPiece, "targetSquare": targetSquare, "promotion": promotionPiece },
+                headers: headerConfig.headers
 
-        axios({
-            method: 'get',
-            url: backendUrl + 'play',
-            params: { "selectedSquare": selectedPiece, "targetSquare": targetSquare, "promotion": promotionPiece },
-            headers: headerConfig.headers
-
-        }).then((res) => {
-            console.log("movePieceBackend")
-            updateBoardData(res)
+            }).then((res) => {
+                console.log("movePieceBackend")
+                updateBoardData(res)
+            })
+            resolve(0)
         })
+
     }
 
     /** Event handling function
@@ -389,32 +423,30 @@ function Board() {
      */
     function movePiece(targetSquare: string) {
 
-        allowUpdate = false
-        controller.abort() // Abort previous update
+        if (board[selectedPiece].pieceColor == turn) {
 
-        new Promise((resolve, _) => {
-            if (board[selectedPiece].pieceColor == turn) {
+            if (board[selectedPiece].pieceType == "Pawn" && ((board[selectedPiece].pieceColor == "w" && targetSquare[1] == "8") // Promotion
+                || (board[selectedPiece].pieceColor == "b" && targetSquare[1] == "1"))) {
+                doPromotion()
+                selectTargetSquarePromotion(targetSquare)
 
-                if (board[selectedPiece].pieceType == "Pawn" && ((board[selectedPiece].pieceColor == "w" && targetSquare[1] == "8") // Promotion
-                    || (board[selectedPiece].pieceColor == "b" && targetSquare[1] == "1"))) {
-                    doPromotion()
-                    selectTargetSquarePromotion(targetSquare)
+            } else {
+                // Object.keys(board).indexOf(targetSquare) > -1 ? playCapture() : playMove()
 
-                } else {
-                    // Object.keys(board).indexOf(targetSquare) > -1 ? playCapture() : playMove()
+                setBoard((prevState) => {
 
-                    setBoard((prevState) => {
-                        var newState = JSON.parse(JSON.stringify(prevState))
-                        newState[targetSquare] = newState[selectedPiece]
-                        delete newState[selectedPiece]
-                        return newState
-                    })
-                    movePieceBackend(selectedPiece, targetSquare)
-                    selectSelectedPiece('')
-                }
+                    let newState = { ...prevState };
+                    newState[targetSquare] = { ...newState[selectedPiece] }
+                    delete newState[selectedPiece]
+                    return newState
+                })
+
+                throttler.callFunction(movePieceBackend, selectedPiece, targetSquare)
+                // movePieceBackend(selectedPiece, targetSquare)
+                selectSelectedPiece('')
             }
-            resolve(0)
-        }).then(() => allowUpdate = true)
+        }
+
     }
 
     /**
@@ -461,7 +493,7 @@ function Board() {
             <div className='mainBoard'>
                 <div className='container'>
                     <div className='timer'>
-                        {sideView ? whiteTimer : blackTimer}
+                        {sideView == "b" ? whiteTimer : blackTimer}
                     </div>
                     <div className='board_table'>
                         {rowOrder.map((rowNumber) => {
@@ -512,14 +544,17 @@ function Board() {
 
                         </div>
                     </div >
-                    <div className='timer'>{sideView ? blackTimer : whiteTimer}</div>
-                    <img onClick={() => selectSideView(!sideView)} src={SwitchButton} className='switchButton' width='30px' />
+                    <div className='timer'>{sideView == "b" ? blackTimer : whiteTimer}</div>
+                    <img onClick={() => selectSideView((prevState) => {
+                        if (prevState == "w") {
+                            return "b"
+                        } else {
+                            return "w"
+                        }
+                    })} src={SwitchButton} className='switchButton' width='30px' />
                     <button onClick={initializeBoard} className='resetButton'> Reset Board </button>
                 </div>
             </div>
-
-
-
         </>
     )
 }
