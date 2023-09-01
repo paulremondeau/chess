@@ -8,9 +8,10 @@ import Timer from '../Timer/Timer'
 
 // Import utils
 import { convertSquare } from '../../utils/convertSquare'
+import Semaphore from '../../utils/semaphore'
 
 // Import libraries
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 
 // @ts-ignore
 import useSound from 'use-sound';
@@ -26,9 +27,9 @@ const headerConfig = {
     }
 };
 
+const throttler = new Semaphore(1);
 
 // Trivia
-
 import SwitchButton from '../../assets/switch.png'
 import backendUrl from '../../../config'
 
@@ -42,18 +43,27 @@ interface TimePlays {
 
 function Board() {
 
+    function logMe() {
+        console.log(fetchBoard == fetchBoard)
+    }
+
     /**
      * The promotion type piece required
      */
     var promotionPiece: string = "_"
 
     // States
-
     /// Visualisation
     const [board, setBoard] = useState<Square>({})
-    const [sideView, selectSideView] = useState<boolean>(false)
+    const [sideView, selectSideView] = useState<string>("w")
     const [rowOrder, selectRowOrder] = useState<number[]>([8, 7, 6, 5, 4, 3, 2, 1])
     const [columnOrder, selectcolumnOrder] = useState<number[]>([1, 2, 3, 4, 5, 6, 7, 8])
+
+    var nPieces: number = Object.keys(board).length
+    /**
+     * Used to play the sounds
+     */
+    const boardChanged = useRef<boolean>(false)
 
     /// Move
     const [selectedPiece, selectSelectedPiece] = useState<string>('')
@@ -68,12 +78,13 @@ function Board() {
     const timeLimit: number = 600000
     const [gameClock, setGameClock] = useState<number>(0)
 
+
+
+
     /// Sounds
     const [playMove] = useSound(moveSfx);
     const [playCapture] = useSound(captureSfx);
     const [playBeep] = useSound(beepSfx);
-
-
 
     /// Timers
     const [timesPlay, setTimesPlay] = useState<TimePlays>({ "w": [], "b": [] })
@@ -94,7 +105,7 @@ function Board() {
     }
 
     const whiteTimer = (turn != "" ? <Timer timeLimit={timeLimit}
-        turn={turn == "w" ? true : false}
+        turn={turn == "w"}
         lastPlayTimes={timesPlay}
         color={"w"}
         opponent={"b"}
@@ -104,7 +115,7 @@ function Board() {
     /> : null)
 
     const blackTimer = (turn != "" ? <Timer timeLimit={timeLimit}
-        turn={turn == "b" ? true : false}
+        turn={turn == "b"}
         lastPlayTimes={timesPlay}
         color={"b"}
         opponent={"w"}
@@ -142,16 +153,23 @@ function Board() {
      * When a winner is declared, play the sound
      */
     useEffect(() => {
-        playBeep()
+        if (winner != "") {
+            playBeep()
+        }
     }, [winner])
 
     /**
-     * Change the side view accordingly
+     * Change the side view accordingly 
      */
     useEffect(() => {
+        if (sideView == "w") {
+            selectRowOrder([8, 7, 6, 5, 4, 3, 2, 1])
+            selectcolumnOrder([1, 2, 3, 4, 5, 6, 7, 8])
 
-        selectRowOrder([...rowOrder.reverse()])
-        selectcolumnOrder([...columnOrder.reverse()])
+        } else {
+            selectRowOrder([1, 2, 3, 4, 5, 6, 7, 8])
+            selectcolumnOrder([8, 7, 6, 5, 4, 3, 2, 1])
+        }
 
     }, [sideView])
 
@@ -161,8 +179,41 @@ function Board() {
      */
     useEffect(() => {
         showMovements(selectedPiece);
-
     }, [selectedPiece])
+
+    /**
+     * Compare old and new board 
+     * @param obj1 Old board
+     * @param obj2 New board
+     * @returns {boolean} true if the boards are the same
+     */
+    function compareBoard(obj1: Square, obj2: Square): boolean {
+
+        if ((Object.keys(obj1).length) != (Object.keys(obj2).length)) {
+            return false
+        } {
+            for (const [index, square] of Object.entries(obj1)) {
+
+                if (obj2[index] == undefined) {
+                    return false
+                }
+                if (square.pieceColor != obj2[index].pieceColor ||
+                    square.pieceType != obj2[index].pieceType ||
+                    square.isChecked != obj2[index].isChecked) {
+                    return false
+                } else {
+                    for (const squareValue of square.availableMovements) {
+
+                        if (!obj2[index].availableMovements.includes(squareValue)) {
+                            return false
+                        }
+                    }
+                }
+
+            }
+            return true
+        }
+    }
 
 
     /**
@@ -170,7 +221,37 @@ function Board() {
      * @param res The axios response from the backend.
      */
     function updateBoardData(res: AxiosResponse) {
-        setBoard(res.data.board)
+        console.log("UpdateBoardData")
+        new Promise((resolve, _) => {
+            setBoard((prevBoard) => {
+                if (compareBoard(prevBoard, res.data.board)) {
+                    // Board is still the same
+                    return { ...prevBoard }
+
+                } else {
+                    boardChanged.current = true
+                    return { ...res.data.board }
+                }
+            })
+            resolve(0)
+        }).then(() => {
+            // If board changed, play sound accordingly
+
+            if (boardChanged.current) {
+
+                if (Object.keys(res.data.board).length < nPieces) {
+                    nPieces = Object.keys(res.data.board).length
+                    console.log("Should play capture")
+                    playCapture()
+                } else {
+                    console.log("Should play move")
+                    playMove()
+                }
+                boardChanged.current = false
+            }
+        })
+
+
         setTurn(res.data.turn)
         setWinner(res.data.winner)
         setTimesPlay(res.data.timesPlay)
@@ -178,17 +259,33 @@ function Board() {
 
     }
 
+    /**
+     * Fetch the board
+     * @returns 
+     */
+    function fetchBoard(): Promise<unknown> {
+        return new Promise((resolve) => {
+            axios({
+                method: 'get',
+                url: backendUrl + 'board',
+                headers: headerConfig.headers,
+
+            }).then((res) => {
+                updateBoardData(res)
+            })
+            resolve(0)
+        })
+    }
+
     const MINUTE_MS = 300;
     /**
-     * Fetch backend every 0.5 seconds to see board update.
+     * Fetch backend every 0.3 seconds to see board update.
      */
     useEffect(() => {
+
         const interval = setInterval(() => {
-            axios
-                .get(backendUrl + 'board', headerConfig)
-                .then((res) => {
-                    updateBoardData(res)
-                })
+
+            throttler.callFunction(fetchBoard, "", "")
         }, MINUTE_MS);
 
         return () => clearInterval(interval); // This represents the unmount function, in which you need to clear your interval to prevent memory leaks.
@@ -201,7 +298,6 @@ function Board() {
         axios
             .get(backendUrl + 'initialize', headerConfig)
             .then((res) => {
-                console.log(res)
                 updateBoardData(res)
                 playBeep()
             })
@@ -214,18 +310,21 @@ function Board() {
      * @param selectedPiece The square with the piece we want to move.
      * @param targetSquare The square we want to move the piece.
      */
-    const movePieceBackend = (selectedPiece: String, targetSquare: String) => {
+    const movePieceBackend = (selectedPiece: String, targetSquare: String): Promise<unknown> => {
+        return new Promise((resolve) => {
+            axios({
+                method: 'get',
+                url: backendUrl + 'play',
+                params: { "selectedSquare": selectedPiece, "targetSquare": targetSquare, "promotion": promotionPiece },
+                headers: headerConfig.headers
 
-        axios({
-            method: 'get',
-            url: backendUrl + 'play',
-            params: { "selectedSquare": selectedPiece, "targetSquare": targetSquare, "promotion": promotionPiece },
-            headers: headerConfig.headers
-
-        }).then((res) => {
-
-            updateBoardData(res)
+            }).then((res) => {
+                console.log("movePieceBackend")
+                updateBoardData(res)
+            })
+            resolve(0)
         })
+
     }
 
     /** Event handling function
@@ -324,7 +423,6 @@ function Board() {
      */
     function movePiece(targetSquare: string) {
 
-
         if (board[selectedPiece].pieceColor == turn) {
 
             if (board[selectedPiece].pieceType == "Pawn" && ((board[selectedPiece].pieceColor == "w" && targetSquare[1] == "8") // Promotion
@@ -333,19 +431,22 @@ function Board() {
                 selectTargetSquarePromotion(targetSquare)
 
             } else {
-                Object.keys(board).indexOf(targetSquare) > -1 ? playCapture() : playMove()
-                board[targetSquare] = board[selectedPiece]
-                delete board[selectedPiece]
-                setBoard({
-                    ...board,
+                // Object.keys(board).indexOf(targetSquare) > -1 ? playCapture() : playMove()
 
-                });
-                movePieceBackend(selectedPiece, targetSquare)
+                setBoard((prevState) => {
+
+                    let newState = { ...prevState };
+                    newState[targetSquare] = { ...newState[selectedPiece] }
+                    delete newState[selectedPiece]
+                    return newState
+                })
+
+                throttler.callFunction(movePieceBackend, selectedPiece, targetSquare)
+                // movePieceBackend(selectedPiece, targetSquare)
                 selectSelectedPiece('')
             }
-
-
         }
+
     }
 
     /**
@@ -382,7 +483,7 @@ function Board() {
 
     return (
         <>
-
+            <button onClick={logMe}>LogMe</button>
             <div className="modal" id="modal">
                 <div className="modal-back"></div>
                 <div className="modal-container">
@@ -392,7 +493,7 @@ function Board() {
             <div className='mainBoard'>
                 <div className='container'>
                     <div className='timer'>
-                        {sideView ? whiteTimer : blackTimer}
+                        {sideView == "b" ? whiteTimer : blackTimer}
                     </div>
                     <div className='board_table'>
                         {rowOrder.map((rowNumber) => {
@@ -443,14 +544,17 @@ function Board() {
 
                         </div>
                     </div >
-                    <div className='timer'>{sideView ? blackTimer : whiteTimer}</div>
-                    <img onClick={() => selectSideView(!sideView)} src={SwitchButton} className='switchButton' width='30px' />
+                    <div className='timer'>{sideView == "b" ? blackTimer : whiteTimer}</div>
+                    <img onClick={() => selectSideView((prevState) => {
+                        if (prevState == "w") {
+                            return "b"
+                        } else {
+                            return "w"
+                        }
+                    })} src={SwitchButton} className='switchButton' width='30px' />
                     <button onClick={initializeBoard} className='resetButton'> Reset Board </button>
                 </div>
             </div>
-
-
-
         </>
     )
 }
