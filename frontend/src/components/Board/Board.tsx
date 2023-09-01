@@ -43,9 +43,6 @@ interface TimePlays {
 
 function Board() {
 
-    function logMe() {
-        console.log(fetchBoard == fetchBoard)
-    }
 
     /**
      * The promotion type piece required
@@ -221,7 +218,6 @@ function Board() {
      * @param res The axios response from the backend.
      */
     function updateBoardData(res: AxiosResponse) {
-        console.log("UpdateBoardData")
         new Promise((resolve, _) => {
             setBoard((prevBoard) => {
                 if (compareBoard(prevBoard, res.data.board)) {
@@ -241,10 +237,10 @@ function Board() {
 
                 if (Object.keys(res.data.board).length < nPieces) {
                     nPieces = Object.keys(res.data.board).length
-                    console.log("Should play capture")
+
                     playCapture()
                 } else {
-                    console.log("Should play move")
+
                     playMove()
                 }
                 boardChanged.current = false
@@ -319,7 +315,7 @@ function Board() {
                 headers: headerConfig.headers
 
             }).then((res) => {
-                console.log("movePieceBackend")
+
                 updateBoardData(res)
             })
             resolve(0)
@@ -483,7 +479,7 @@ function Board() {
 
     return (
         <>
-            <button onClick={logMe}>LogMe</button>
+
             <div className="modal" id="modal">
                 <div className="modal-back"></div>
                 <div className="modal-container">
