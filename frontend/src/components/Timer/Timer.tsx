@@ -95,7 +95,7 @@ function Timer({ timeLimit,
         <>
             <div className={'box ' + (turn ? 'playing' : 'waiting')}>
                 <div className={'time'}>
-                    {[...Duration.fromMillis(timer.current).toFormat("mm:ss")].map(c => {
+                    {isNaN(timer.current) ? 10000 : [...Duration.fromMillis(timer.current).toFormat("mm:ss")].map(c => {
                         return (
                             <p>{c}</p>
                         )

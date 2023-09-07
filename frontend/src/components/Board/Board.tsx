@@ -14,7 +14,7 @@ import Semaphore from '../../utils/semaphore'
 import { useState, useEffect, useRef } from 'react'
 
 // @ts-ignore
-import useSound from 'use-sound';
+// import useSound from 'use-sound';
 import moveSfx from '../../assets/move-self.mp3';
 import captureSfx from '../../assets/capture.mp3';
 import beepSfx from '../../assets/lichess-beep.mp3';
@@ -41,6 +41,12 @@ interface TimePlays {
     [key: string]: number[];
 }
 
+var playSounds = true
+var updateBoard = true
+var boardChanged = false
+var nPieces = 0
+
+
 function Board() {
 
 
@@ -56,11 +62,13 @@ function Board() {
     const [rowOrder, selectRowOrder] = useState<number[]>([8, 7, 6, 5, 4, 3, 2, 1])
     const [columnOrder, selectcolumnOrder] = useState<number[]>([1, 2, 3, 4, 5, 6, 7, 8])
 
-    var nPieces: number = Object.keys(board).length
     /**
      * Used to play the sounds
      */
-    const boardChanged = useRef<boolean>(false)
+    // const playSounds = useRef<boolean>(true)
+    // const updateBoard = useRef<boolean>(true)
+    // const boardChanged = useRef<boolean>(false)
+
 
     /// Move
     const [selectedPiece, selectSelectedPiece] = useState<string>('')
@@ -79,9 +87,9 @@ function Board() {
 
 
     /// Sounds
-    const [playMove] = useSound(moveSfx);
-    const [playCapture] = useSound(captureSfx);
-    const [playBeep] = useSound(beepSfx);
+    const playMove = new Audio(moveSfx)
+    const playCapture = new Audio(captureSfx);
+    const playBeep = new Audio(beepSfx);
 
     /// Timers
     const [timesPlay, setTimesPlay] = useState<TimePlays>({ "w": [], "b": [] })
@@ -151,7 +159,7 @@ function Board() {
      */
     useEffect(() => {
         if (winner != "") {
-            playBeep()
+            playBeep.play()
         }
     }, [winner])
 
@@ -218,34 +226,51 @@ function Board() {
      * @param res The axios response from the backend.
      */
     function updateBoardData(res: AxiosResponse) {
-        new Promise((resolve, _) => {
-            setBoard((prevBoard) => {
-                if (compareBoard(prevBoard, res.data.board)) {
-                    // Board is still the same
-                    return { ...prevBoard }
 
+        new Promise((resolve) => {
+            setBoard((prevBoard) => {
+                if (!updateBoard) {
+                    return prevBoard
                 } else {
-                    boardChanged.current = true
-                    return { ...res.data.board }
+                    if (compareBoard(prevBoard, res.data.board)) {
+                        // Board is still the same
+                        // boardChanged.current = false
+                        boardChanged = false
+                        return { ...prevBoard }
+                    } else {
+                        // boardChanged.current = true
+                        boardChanged = true
+                        return { ...res.data.board }
+                    }
                 }
             })
             resolve(0)
-        }).then(() => {
-            // If board changed, play sound accordingly
-
-            if (boardChanged.current) {
-
-                if (Object.keys(res.data.board).length < nPieces) {
-                    nPieces = Object.keys(res.data.board).length
-
-                    playCapture()
-                } else {
-
-                    playMove()
+        }
+        ).then(() => {
+            console.log("foo")
+            console.log(boardChanged)
+            if (boardChanged) {
+                console.log("Now updating data, playsounds is " + playSounds)
+                console.log(" ")
+                if (playSounds) {
+                    console.log("N pieces new board : " + Object.keys(res.data.board).length)
+                    console.log("Old n pieces : " + nPieces)
+                    if (Object.keys(res.data.board).length < nPieces) {
+                        console.log("Play capture")
+                        playCapture.play()
+                    } else {
+                        console.log("Play move")
+                        playMove.play()
+                    }
                 }
-                boardChanged.current = false
             }
+            return 0
+        }).then(() => {
+            playSounds = true
+            nPieces = Object.keys(res.data.board).length
+            return 0
         })
+
 
 
         setTurn(res.data.turn)
@@ -282,6 +307,7 @@ function Board() {
         const interval = setInterval(() => {
 
             throttler.callFunction(fetchBoard, "", "")
+
         }, MINUTE_MS);
 
         return () => clearInterval(interval); // This represents the unmount function, in which you need to clear your interval to prevent memory leaks.
@@ -294,8 +320,9 @@ function Board() {
         axios
             .get(backendUrl + 'initialize', headerConfig)
             .then((res) => {
+                playSounds = false
                 updateBoardData(res)
-                playBeep()
+                playBeep.play()
             })
     }
 
@@ -306,7 +333,8 @@ function Board() {
      * @param selectedPiece The square with the piece we want to move.
      * @param targetSquare The square we want to move the piece.
      */
-    const movePieceBackend = (selectedPiece: String, targetSquare: String): Promise<unknown> => {
+    function movePieceBackend(selectedPiece: String, targetSquare: String): Promise<unknown> {
+        playSounds = false
         return new Promise((resolve) => {
             axios({
                 method: 'get',
@@ -315,8 +343,11 @@ function Board() {
                 headers: headerConfig.headers
 
             }).then((res) => {
-
-                updateBoardData(res)
+                updateBoard = true
+                return new Promise((resolve) => {
+                    updateBoardData(res)
+                    resolve(0)
+                })
             })
             resolve(0)
         })
@@ -418,7 +449,7 @@ function Board() {
      * @param targetSquare The targetted square.
      */
     function movePiece(targetSquare: string) {
-
+        updateBoard = false
         if (board[selectedPiece].pieceColor == turn) {
 
             if (board[selectedPiece].pieceType == "Pawn" && ((board[selectedPiece].pieceColor == "w" && targetSquare[1] == "8") // Promotion
@@ -427,18 +458,20 @@ function Board() {
                 selectTargetSquarePromotion(targetSquare)
 
             } else {
-                // Object.keys(board).indexOf(targetSquare) > -1 ? playCapture() : playMove()
+                Object.keys(board).indexOf(targetSquare) > -1 ? playCapture.play() : playMove.play()
+
+
 
                 setBoard((prevState) => {
 
                     let newState = { ...prevState };
                     newState[targetSquare] = { ...newState[selectedPiece] }
                     delete newState[selectedPiece]
+                    updateBoard = false
                     return newState
                 })
 
                 throttler.callFunction(movePieceBackend, selectedPiece, targetSquare)
-                // movePieceBackend(selectedPiece, targetSquare)
                 selectSelectedPiece('')
             }
         }
@@ -477,9 +510,12 @@ function Board() {
         )
     }
 
+    const logMe = () => {
+        playMove.play()
+    }
     return (
         <>
-
+            <button onClick={logMe}>LogMe</button>
             <div className="modal" id="modal">
                 <div className="modal-back"></div>
                 <div className="modal-container">
