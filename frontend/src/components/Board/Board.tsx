@@ -41,10 +41,7 @@ interface TimePlays {
     [key: string]: number[];
 }
 
-var playSounds = true
-var updateBoard = true
-var boardChanged = false
-var nPieces = 0
+
 
 
 function Board() {
@@ -65,9 +62,29 @@ function Board() {
     /**
      * Used to play the sounds
      */
-    // const playSounds = useRef<boolean>(true)
-    // const updateBoard = useRef<boolean>(true)
-    // const boardChanged = useRef<boolean>(false)
+    const playSounds = useRef<boolean>(true)
+    const updateBoard = useRef<boolean>(true)
+    const boardChanged = useRef<boolean>(false)
+    const oldNPieces = useRef<number>(0)
+    const newNPieces = useRef<number>(0)
+    useEffect(() => {
+        console.log("Update board")
+        if (boardChanged) {
+            if (playSounds.current) {
+                if (newNPieces < oldNPieces) {
+                    console.log("Play capture")
+                    playCapture.play()
+                } else {
+                    console.log("Play move")
+                    playMove.play()
+                }
+            } else {
+                playSounds.current = true
+            }
+        }
+        oldNPieces.current == newNPieces.current
+
+    }, [boardChanged])
 
 
     /// Move
@@ -227,52 +244,22 @@ function Board() {
      */
     function updateBoardData(res: AxiosResponse) {
 
-        new Promise((resolve) => {
-            setBoard((prevBoard) => {
-                if (!updateBoard) {
-                    return prevBoard
+        setBoard((prevBoard) => {
+            if (!updateBoard) {
+                boardChanged.current = false
+                return prevBoard
+            } else {
+                if (compareBoard(prevBoard, res.data.board)) {
+                    // Board is still the same
+                    boardChanged.current = false
+                    return { ...prevBoard }
                 } else {
-                    if (compareBoard(prevBoard, res.data.board)) {
-                        // Board is still the same
-                        // boardChanged.current = false
-                        boardChanged = false
-                        return { ...prevBoard }
-                    } else {
-                        // boardChanged.current = true
-                        boardChanged = true
-                        return { ...res.data.board }
-                    }
-                }
-            })
-            resolve(0)
-        }
-        ).then(() => {
-            console.log("foo")
-            console.log(boardChanged)
-            if (boardChanged) {
-                console.log("Now updating data, playsounds is " + playSounds)
-                console.log(" ")
-                if (playSounds) {
-                    console.log("N pieces new board : " + Object.keys(res.data.board).length)
-                    console.log("Old n pieces : " + nPieces)
-                    if (Object.keys(res.data.board).length < nPieces) {
-                        console.log("Play capture")
-                        playCapture.play()
-                    } else {
-                        console.log("Play move")
-                        playMove.play()
-                    }
+                    newNPieces.current = Object.keys(res.data.board).length
+                    boardChanged.current = true
+                    return { ...res.data.board }
                 }
             }
-            return 0
-        }).then(() => {
-            playSounds = true
-            nPieces = Object.keys(res.data.board).length
-            return 0
         })
-
-
-
         setTurn(res.data.turn)
         setWinner(res.data.winner)
         setTimesPlay(res.data.timesPlay)
@@ -320,7 +307,7 @@ function Board() {
         axios
             .get(backendUrl + 'initialize', headerConfig)
             .then((res) => {
-                playSounds = false
+                playSounds.current = false
                 updateBoardData(res)
                 playBeep.play()
             })
@@ -334,7 +321,7 @@ function Board() {
      * @param targetSquare The square we want to move the piece.
      */
     function movePieceBackend(selectedPiece: String, targetSquare: String): Promise<unknown> {
-        playSounds = false
+        playSounds.current = false
         return new Promise((resolve) => {
             axios({
                 method: 'get',
@@ -343,11 +330,9 @@ function Board() {
                 headers: headerConfig.headers
 
             }).then((res) => {
-                updateBoard = true
-                return new Promise((resolve) => {
-                    updateBoardData(res)
-                    resolve(0)
-                })
+                updateBoard.current = true
+                updateBoardData(res)
+
             })
             resolve(0)
         })
@@ -449,7 +434,7 @@ function Board() {
      * @param targetSquare The targetted square.
      */
     function movePiece(targetSquare: string) {
-        updateBoard = false
+        updateBoard.current = false
         if (board[selectedPiece].pieceColor == turn) {
 
             if (board[selectedPiece].pieceType == "Pawn" && ((board[selectedPiece].pieceColor == "w" && targetSquare[1] == "8") // Promotion
@@ -467,7 +452,7 @@ function Board() {
                     let newState = { ...prevState };
                     newState[targetSquare] = { ...newState[selectedPiece] }
                     delete newState[selectedPiece]
-                    updateBoard = false
+                    updateBoard.current = false
                     return newState
                 })
 
