@@ -63,9 +63,6 @@ case class DataOutputFormat(
 
 object Main extends IOApp {
 
-  var blackLastPlay: Long = -1
-  var whiteLastPlay: Long = -1
-
   val game: GameAPI = GameAPI()
 
   val helloWorldService = HttpRoutes
@@ -92,8 +89,6 @@ object Main extends IOApp {
 
       case req @ GET -> Root / "initialize" =>
         game.initialize()
-        blackLastPlay = -1
-        whiteLastPlay = -1
 
         println(game.board)
         Ok(

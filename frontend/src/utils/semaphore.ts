@@ -33,29 +33,23 @@ class Semaphore {
                 args,
             ]);
             this.tryNext();
-
         });
     }
 
     tryNext() {
-
         if (!this.currentRequests.length) {
             return;
         } else if (this.runningRequests < this.maxConcurrentRequests) {
 
             let [resolve, reject, fnToCall, args] = this.currentRequests.shift()!;
-
             this.runningRequests++;
             let req = fnToCall(...args);
-            req.then(() => {
-                resolve(0)
-            })
-                .catch(() => reject(0))
+            req.then(() => resolve(0)
+            ).catch(() => reject(0))
                 .finally(() => {
                     this.runningRequests--;
                     this.tryNext();
-
-
+                    return 0
                 });
         }
     }
