@@ -82,11 +82,19 @@ $squareSize: 65px;
         display: inline;
         margin: auto;
 
+
+
         .timer {
             display: flex;
             align-items: center;
             justify-content: end;
             width: 100%;
+        }
+
+        .movementPiece {
+            visibility: hidden;
+            z-index: 10;
+            background-color: red;
         }
 
         .board_table {

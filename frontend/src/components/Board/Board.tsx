@@ -285,7 +285,7 @@ function Board() {
         })
     }
 
-    const MINUTE_MS = 300;
+    const MINUTE_MS = 249;
     /**
      * Fetch backend every 0.3 seconds to see board update.
      */
@@ -444,7 +444,18 @@ function Board() {
 
             } else {
                 Object.keys(board).indexOf(targetSquare) > -1 ? playCapture.play() : playMove.play()
-
+                const startPosCoordinates: DOMRect = document.getElementById(selectedPiece)!.getBoundingClientRect()
+                const endPosCoordinates: DOMRect = document.getElementById(targetSquare)!.getBoundingClientRect()
+                const [bottom, top, right, left] = [Math.min(startPosCoordinates['bottom'], endPosCoordinates['bottom']),
+                Math.max(startPosCoordinates['top'], endPosCoordinates['top']),
+                Math.max(startPosCoordinates['right'], endPosCoordinates['right']),
+                Math.min(startPosCoordinates['left'], endPosCoordinates['left'])
+                ]
+                document.getElementById("movementPiece")!.style.visibility = 'visible'
+                document.getElementById("movementPiece")!.style.top = top.toString()
+                document.getElementById("movementPiece")!.style.bottom = bottom.toString()
+                document.getElementById("movementPiece")!.style.right = right.toString()
+                document.getElementById("movementPiece")!.style.left = left.toString()
 
 
                 setBoard((prevState) => {
@@ -507,8 +518,10 @@ function Board() {
                     <Promotion color={colorPromotion} onInteraction={selectPromotion} />
                 </div>
             </div>
+            <div className='movementPiece' id='movementPiece'>a</div>
             <div className='mainBoard'>
                 <div className='container'>
+
                     <div className='timer'>
                         {sideView == "b" ? whiteTimer : blackTimer}
                     </div>
