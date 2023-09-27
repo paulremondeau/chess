@@ -1,24 +1,17 @@
+import { render, within } from '@testing-library/react';
 import Board from '../Board/Board';
-
-import ReactDOM from 'react-dom/client';
-import { act } from '@testing-library/react';
-
-let container: HTMLDivElement | null;
 import axios from 'axios';
 
 // Mock jest and set the type
 jest.mock('axios');
 const mockedAxios = axios as jest.Mocked<typeof axios>
 
-beforeEach(() => {
-    container = document.createElement('div');
-    document.body.appendChild(container);
-});
+const renderComponent = () => {
+    return render(
+        <Board />
+    );
+};
 
-afterEach(() => {
-    document.body.removeChild(container!);
-    container = null;
-});
 
 it('can load', () => {
 
@@ -37,12 +30,12 @@ it('can load', () => {
                     ],
                     "isChecked": false
                 }
-            },
+            }
         }
     });
 
-    act(() => { ReactDOM.createRoot(container!).render(<Board />); });
-    // act(() => { render(<Board />); });
+    const { container } = renderComponent();
+    expect(container.getElementsByClassName("piece")).toHaveLength(1)
 
 
 }); 
