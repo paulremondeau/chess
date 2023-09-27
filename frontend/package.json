@@ -21,6 +21,7 @@
     "luxon": "^3.4.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
+    "react-router-dom": "^6.16.0",
     "sass": "^1.63.6",
     "ts-jest": "^29.1.1",
     "ts-node": "^10.9.1",

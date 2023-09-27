@@ -1,12 +1,14 @@
-import renderer from 'react-test-renderer';
+import { render } from '@testing-library/react';
 import Piece from '../Piece/Piece';
 
-it('can load', () => {
-    const component = renderer.create(
-        <Piece name="K" color="w"></Piece>,
+const renderComponent = () => {
+    return render(
+        <Piece name="K" color="w" />
     );
-    let tree = component.toJSON();
-    expect(tree).toMatchSnapshot();
+};
 
+it('can load', () => {
+    const { getAllByRole } = renderComponent();
+    expect(getAllByRole("img")).toHaveLength(1)
 
 }); 

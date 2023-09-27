@@ -49,20 +49,6 @@ function Timer({ timeLimit,
 
     }
 
-    // function timePlayTurn(plays: number[], playsOpponent: number[]): number {
-
-    //     const tempArray: number[] = plays.concat(gameClock)
-    //     const tempArrayOpponent: number[] = [...playsOpponent]
-    //     tempArray.shift()
-    //     if (plays.length < playsOpponent.length) { // Black turn to play
-    //         tempArrayOpponent.shift()
-    //     } else {
-    //         null
-    //     }
-
-    //     return tempArray.map((v, i) => v - playsOpponent[i]).reduce((sum, num) => sum + num)
-
-    // }
 
     function timePlayNotTurn(plays: number[], playsOpponent: number[]): number {
 
@@ -94,13 +80,9 @@ function Timer({ timeLimit,
     return (
         <>
             <div className={'box ' + (turn ? 'playing' : 'waiting')}>
-                <div className={'time'}>
-                    {isNaN(timer.current) ? 10000 : [...Duration.fromMillis(timer.current).toFormat("mm:ss")].map(c => {
-                        return (
-                            <p>{c}</p>
-                        )
-                    })}
-                </div>
+                <p className={'time'}>
+                    {isNaN(timer.current) ? 10000 : Duration.fromMillis(timer.current).toFormat("mm:ss")}
+                </p>
 
             </div>
         </>
